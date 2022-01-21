@@ -14,11 +14,11 @@ from network.ResNet50 import ResNet50
 from network.VGG16 import vgg16
 
 
-class Airfoil_Dataset(Dataset):
-    def __init__(self, img_list, label_list) -> None:
+class Airfoil_Dataset_From_Images(Dataset):
+    def __init__(self, img_list, label_list, transform) -> None:
         self.imgs = img_list
         self.label = label_list
-        self.transform = transforms.Compose([transforms.ToTensor()])
+        self.transform = transform
 
     def __getitem__(self, index):
         fn = self.imgs[index]
@@ -34,32 +34,13 @@ class Airfoil_Dataset(Dataset):
         return len(self.imgs)
 
 
-class Airfoil_3channel_Dataset(Airfoil_Dataset):
-    def __init__(self, img_list, label_list) -> None:
-        super().__init__(img_list, label_list)
-        self.Gx = np.array([[-1, 0, 1],
-                            [-2, 0, 2],
-                            [-1, 0, 1]])
-        self.Gy = np.array([[1, 2, 1],
-                           [0, 0, 0],
-                           [-1, -2, -1]])
-                                               
+class Airfoil_Dataset_From_NPY(Airfoil_Dataset_From_Images):
+    def __init__(self, img_list, label_list, transform) -> None:
+        super().__init__(img_list, label_list, transform)
 
     def __getitem__(self, index):
         fn = self.imgs[index]
-        img = cv.imread(fn, cv.IMREAD_GRAYSCALE)
-        img = cv.resize(img, (224, 224))/255
-        img_pad = cv.copyMakeBorder(img, 1, 1, 1, 1, borderType=cv.BORDER_REPLICATE)
-        img_x = np.zeros(img.shape)
-        img_y = np.zeros(img.shape)
-
-        for x in range(224):
-            for y in range(224):
-                roi = img_pad[x:x+3, y:y+3]
-                img_x[x,y] = (roi * self.Gx).sum()  
-                img_y[x,y] = (roi * self.Gy).sum()
-        
-        img = cv.merge([img, img_x, img_y])
+        img = np.load(fn)
         img = self.transform(img)
         label = self.label[index]
 
@@ -75,11 +56,13 @@ def main():
     # classes = ('10th', '1st', '2nd', '3rd', '4th', '5th',
     #                 '6th', '7th', '8th', '9th')
     
-    train_set = Airfoil_3channel_Dataset(np.load('dataset order\one channel\train_img.npy'), 
-                                np.load('dataset order\one channel\train_label.npy'))
+    transform = transforms.Compose([transforms.ToTensor()])
 
-    val_set = Airfoil_3channel_Dataset(np.load('dataset order\one channel\val_img.npy'), 
-                                np.load('dataset order\one channel\val_label.npy'))
+    train_set = Airfoil_Dataset_From_NPY(np.load('dataset order\one channel\train_img.npy'), 
+                                np.load('dataset order\one channel\train_label.npy'), transform)
+
+    val_set = Airfoil_Dataset_From_NPY(np.load('dataset order\one channel\val_img.npy'), 
+                                np.load('dataset order\one channel\val_label.npy'), transform)
 
     train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=True)
