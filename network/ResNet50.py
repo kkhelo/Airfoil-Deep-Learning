@@ -79,13 +79,13 @@ class Douwn_Sample_Block(nn.Module):
 
 
 class ResNet50(nn.Module):
-    def __init__(self)->None:
+    def __init__(self, in_channel : int, out_classes : int)->None:
         super().__init__()
 
         net = []
 
         ## Block 1  
-        net.append(nn.Conv2d( in_channels=1, out_channels=64, kernel_size=7, stride=2, padding=3, bias=False))
+        net.append(nn.Conv2d( in_channels=in_channel, out_channels=64, kernel_size=7, stride=2, padding=3, bias=False))
         net.append(nn.BatchNorm2d(64))
         net.append(nn.ReLU(True))
         net.append(nn.MaxPool2d(3, 2, padding=1))
@@ -120,7 +120,7 @@ class ResNet50(nn.Module):
         # Fully Connected Layer
         fc = []
 
-        fc.append(nn.Linear(7*7*2048, 10))
+        fc.append(nn.Linear(7*7*2048, out_classes))
         
         self.fc = nn.Sequential(*fc)
         

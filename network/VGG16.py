@@ -1,15 +1,14 @@
 from torch import nn
 
 class vgg16(nn.Module):
-  def __init__(self, numClasses = 10):
+  def __init__(self, in_channel : int ,out_classes : int):
     
     super().__init__()
-    self.numClasses = numClasses
     net = []
 
     # network construct
     # block 1
-    net.append(nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, padding=1, stride=1))
+    net.append(nn.Conv2d(in_channels=in_channel, out_channels=64, kernel_size=3, padding=1, stride=1))
     net.append(nn.BatchNorm2d(64))
     net.append(nn.ReLU())
     net.append(nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, padding=1, stride=1))
@@ -83,7 +82,7 @@ class vgg16(nn.Module):
     classifier.append(nn.Linear(in_features=4096, out_features=4096))
     classifier.append(nn.ReLU())
     classifier.append(nn.Dropout())
-    classifier.append(nn.Linear(in_features=4096, out_features=self.numClasses))
+    classifier.append(nn.Linear(in_features=4096, out_features=out_classes))
     classifier.append(nn.Softmax(dim=1))
 
     self.classifier = nn.Sequential(*classifier)
