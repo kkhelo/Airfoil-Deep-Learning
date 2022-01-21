@@ -2,7 +2,7 @@
 import glob
 import os
 
-root = 'D:\\BYY\\Airfoil DL\\NACAUIUC_TRAINING_1123\\NACAUIUC_10C_filldf1_1123\\'
+root = 'D:\\Code_workspace\\Airfoil DL\\dataset\\NACAUIUC_10C_filldf1_1123\\'
 class_folder = os.path.join(root, '*')
 
 class_folder = glob.glob(class_folder)

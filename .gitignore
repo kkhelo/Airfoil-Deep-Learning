@@ -1,6 +1,8 @@
 #Self define 
 NACAUIUC_TRAINING_1123/
 original_airfoil/
+dataset/
+dataset order/
 **/*.pk1
 log/
 

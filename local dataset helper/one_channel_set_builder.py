@@ -2,7 +2,8 @@ import os, glob
 import random
 import numpy as np
 
-root = 'D:\\BYY\\Airfoil DL\\NACAUIUC_TRAINING_1123\\NACAUIUC_10C_filldf1_1123\\'
+root = '../dataset/NACAUIUC_10C_filldf1_1123/'
+
 class_folder = os.path.join(root, '*')
 
 class_folder = glob.glob(class_folder)
@@ -14,7 +15,6 @@ val_label = []
 
 train_ratio = 0.8
 val_ratio = 0.2
-
 
 for Class_list in class_folder:
 
@@ -36,7 +36,7 @@ for Class_list in class_folder:
         val_img.append(img)
         val_label.append(Class)
     
-np.save('D:\\BYY\\Airfoil DL\\dataset_order\\train_img.npy', train_img)
-np.save('D:\\BYY\\Airfoil DL\\dataset_order\\train_label.npy', train_label)
-np.save('D:\\BYY\\Airfoil DL\\dataset_order\\val_img.npy', val_img)
-np.save('D:\\BYY\\Airfoil DL\\dataset_order\\val_label.npy', val_label)
+np.save('../dataset order/NACAUIUC_10C_filldf1_1123/train_img.npy', train_img)
+np.save('../dataset order/NACAUIUC_10C_filldf1_1123/train_label.npy', train_label)
+np.save('../dataset order/NACAUIUC_10C_filldf1_1123/val_img.npy', val_img)
+np.save('../dataset order/NACAUIUC_10C_filldf1_1123/val_label.npy', val_label)
