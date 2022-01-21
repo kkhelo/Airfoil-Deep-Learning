@@ -80,23 +80,25 @@ def build_dataset_order(root, format = '*'):
         val_img_list = img_list[train_len:]
 
         for img in tra_img_list:
+            img = img.split('\\', 1)[1]
             train_img.append(img)
             train_label.append(Class)
         
         for img in val_img_list:
+            img = img.split('\\', 1)[1]
             val_img.append(img)
             val_label.append(Class)
     
-        np.save(f'{root}/train_img.npy', train_img)
-        np.save(f'{root}/train_label.npy', train_label)
-        np.save(f'{root}/val_img.npy', val_img)
-        np.save(f'{root}/val_label.npy', val_label)
+        np.save(f'{root}\\train_img.npy', train_img)
+        np.save(f'{root}\\train_label.npy', train_label)
+        np.save(f'{root}\\val_img.npy', val_img)
+        np.save(f'{root}\\val_label.npy', val_label)
 
 
 if __name__ == '__main__':
 
-    root = '../dataset/NACAUIUC_10C_filldf1_1123/'
-    # root = '../dataset/NACAUIUC_10C_filldf1_1123_3channel/'
+    root = '..\\dataset\\NACAUIUC_10C_filldf1_1123\\'
+    # root = '..\\dataset\\NACAUIUC_10C_filldf1_1123_3channel\\'
 
     # format = '*.npy'
     # format = '*.png'

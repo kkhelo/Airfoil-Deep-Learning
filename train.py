@@ -51,7 +51,7 @@ def main():
 
     batch_size = 32
     epoch_num = 20
-    test_name = 'channel3_test1'
+    test_name = 'channel3_test1_220121'
 
     # classes = ('10th', '1st', '2nd', '3rd', '4th', '5th',
     #                 '6th', '7th', '8th', '9th')
