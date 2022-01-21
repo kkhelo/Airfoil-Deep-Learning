@@ -75,11 +75,11 @@ def main():
     # classes = ('10th', '1st', '2nd', '3rd', '4th', '5th',
     #                 '6th', '7th', '8th', '9th')
     
-    train_set = Airfoil_3channel_Dataset(np.load('dataset order\one channel\train_img.npy'), 
-                                np.load('dataset order\one channel\train_label.npy'))
+    train_set = Airfoil_3channel_Dataset(np.load('dataset/NACAUIUC_10C_filldf1_1123_3channel/train_img.npy'), 
+                                np.load('dataset/NACAUIUC_10C_filldf1_1123_3channel/train_label.npy'))
 
-    val_set = Airfoil_3channel_Dataset(np.load('dataset order\one channel\val_img.npy'), 
-                                np.load('dataset order\one channel\val_label.npy'))
+    val_set = Airfoil_3channel_Dataset(np.load('dataset/NACAUIUC_10C_filldf1_1123_3channel/val_img.npy'), 
+                                np.load('dataset/NACAUIUC_10C_filldf1_1123_3channel/val_label.npy'))
 
     train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=True)
