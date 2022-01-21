@@ -95,8 +95,8 @@ def build_dataset_order(root, format = '*'):
 
 if __name__ == '__main__':
 
-    # root = '../dataset/NACAUIUC_10C_filldf1_1123/'
-    root = '../dataset/NACAUIUC_10C_filldf1_1123_3channel/'
+    root = '../dataset/NACAUIUC_10C_filldf1_1123/'
+    # root = '../dataset/NACAUIUC_10C_filldf1_1123_3channel/'
 
     # format = '*.npy'
     # format = '*.png'
