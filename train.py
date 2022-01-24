@@ -6,7 +6,6 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms, utils
 import numpy as np
 from PIL import Image
-import cv2 as cv
 import os
 import time
 from network.ResNet50 import ResNet50
@@ -153,3 +152,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    
