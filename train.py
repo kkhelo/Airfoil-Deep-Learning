@@ -7,8 +7,7 @@ from torchvision import transforms, utils
 import numpy as np
 from PIL import Image
 import cv2 as cv
-import os, glob
-from datetime import datetime
+import os
 import time
 from network.ResNet50 import ResNet50
 from network.VGG16 import vgg16
@@ -49,9 +48,11 @@ class Airfoil_Dataset_From_NPY(Airfoil_Dataset_From_Images):
 
 def main():
 
+    torch.set_num_threads(10)
+
     batch_size = 32
     epoch_num = 20
-    test_name = '3channel_lr000005c_20ep'
+    test_name = '3channel_lr000005cos_20ep'
     # model = torch.load('model/3channel_lr00008c_21-50ep.pk1')
     model = ResNet50(3, 10)
 
@@ -61,11 +62,11 @@ def main():
 
     transform = transforms.Compose([transforms.ToTensor()])
 
-    train_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_filldf1_1123/train_img.npy'), 
-                                np.load('dataset/NACAUIUC_10C_filldf1_1123/train_label.npy'), transform)
+    train_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_filldf1_1123_3channel/train_img.npy'), 
+                                np.load('dataset/NACAUIUC_10C_filldf1_1123_3channel/train_label.npy'), transform)
 
-    val_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_filldf1_1123/val_img.npy'), 
-                                np.load('dataset/NACAUIUC_10C_filldf1_1123/val_label.npy'), transform)
+    val_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_filldf1_1123_3channel/val_img.npy'), 
+                                np.load('dataset/NACAUIUC_10C_filldf1_1123_3channel/val_label.npy'), transform)
 
     train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=True)
@@ -84,7 +85,7 @@ def main():
     lr = 0.00005
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(model.parameters(), lr, momentum=0.8)
-    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=5, eta_min=0, last_epoch=-1)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=3, eta_min=0, last_epoch=-1)
     # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 3)
     record_batch = 30
 
@@ -110,8 +111,8 @@ def main():
 
             if (not (i+1) % record_batch) or ( i+1 == len(train_loader)):
                 print(f'Epoch : {epoch+1:03d}/{epoch_num:03d} | Batch : {i+1:04d}/{len(train_loader):04d} | Loss : {loss:.2f}')       
-
-        # scheduler.step()
+        
+        scheduler.step()
 
         # Validation 
         validation_loss = 0
