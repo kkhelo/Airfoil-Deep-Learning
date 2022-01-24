@@ -39,6 +39,7 @@ class Airfoil_Dataset_From_NPY(Airfoil_Dataset_From_Images):
     def __getitem__(self, index):
         fn = self.imgs[index]
         img = np.load(fn)
+        img = img[:,:,1:]       # for two channels
         img = self.transform(img)
         label = self.label[index]
 
@@ -51,9 +52,9 @@ def main():
 
     batch_size = 32
     epoch_num = 20
-    test_name = '1channel_lr000005cos_20ep'
+    test_name = '2channel_lr000005c_20ep'
     # model = torch.load('model/3channel_lr00008c_21-50ep.pk1')
-    model = ResNet50(1, 10)
+    model = ResNet50(2, 10)
 
     # classes = ('10th', '1st', '2nd', '3rd', '4th', '5th',
     #                 '6th', '7th', '8th', '9th')
@@ -62,16 +63,16 @@ def main():
     transform = transforms.Compose([transforms.ToTensor()])
 
 
-    train_set = Airfoil_Dataset_From_Images(np.load('dataset/NACAUIUC_10C_filldf1_1123/train_img.npy'), 
-                                np.load('dataset/NACAUIUC_10C_filldf1_1123/train_label.npy'), transform)
-    val_set = Airfoil_Dataset_From_Images(np.load('dataset/NACAUIUC_10C_filldf1_1123/val_img.npy'), 
-                                np.load('dataset/NACAUIUC_10C_filldf1_1123/val_label.npy'), transform)
+    # train_set = Airfoil_Dataset_From_Images(np.load('dataset/NACAUIUC_10C_filldf1_1123/train_img.npy'), 
+    #                             np.load('dataset/NACAUIUC_10C_filldf1_1123/train_label.npy'), transform)
+    # val_set = Airfoil_Dataset_From_Images(np.load('dataset/NACAUIUC_10C_filldf1_1123/val_img.npy'), 
+    #                             np.load('dataset/NACAUIUC_10C_filldf1_1123/val_label.npy'), transform)
 
 
-    # train_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_filldf1_1123_3channel/train_img.npy'), 
-    #                             np.load('dataset/NACAUIUC_10C_filldf1_1123_3channel/train_label.npy'), transform)
-    # val_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_filldf1_1123_3channel/val_img.npy'), 
-    #                             np.load('dataset/NACAUIUC_10C_filldf1_1123_3channel/val_label.npy'), transform)
+    train_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_filldf1_1123_3channel/train_img.npy'), 
+                                np.load('dataset/NACAUIUC_10C_filldf1_1123_3channel/train_label.npy'), transform)
+    val_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_filldf1_1123_3channel/val_img.npy'), 
+                                np.load('dataset/NACAUIUC_10C_filldf1_1123_3channel/val_label.npy'), transform)
 
     train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=True)
@@ -90,7 +91,7 @@ def main():
     lr = 0.00005
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(model.parameters(), lr, momentum=0.8)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=3, eta_min=0, last_epoch=-1)
+    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=3, eta_min=0, last_epoch=-1)
     # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 3)
     record_batch = 30
 
@@ -117,7 +118,7 @@ def main():
             if (not (i+1) % record_batch) or ( i+1 == len(train_loader)):
                 print(f'Epoch : {epoch+1:03d}/{epoch_num:03d} | Batch : {i+1:04d}/{len(train_loader):04d} | Loss : {loss:.2f}')       
         
-        scheduler.step()
+        # scheduler.step()
 
         # Validation 
         validation_loss = 0
@@ -133,12 +134,12 @@ def main():
                 acc = (pred == labels).sum()
                 validation_acc += acc.item()
         
-        print(f'Epoch {epoch+1:03d} finished | Traning acc : {training_acc/8992*100:.2f}% | Validation acc : {validation_acc/2239*100:.2f}%')
+        print(f'Epoch {epoch+1:03d} finished | Traning acc : {training_acc/len(train_set)*100:.2f}% | Validation acc : {validation_acc/len(val_set)*100:.2f}%')
         print(f'Time elapsed : {time.time()/60 - start:.2f} min')
         
 
         writer_loss.add_scalars('Loss', {'Train' : training_loss/len(train_loader), 'Validation' : validation_loss/len(val_loader)}, epoch + 1)
-        writer_acc.add_scalars('Accuracy', {'Train' : training_acc/8992*100, 'Validation' : validation_acc/2239*100}, epoch + 1)
+        writer_acc.add_scalars('Accuracy', {'Train' : training_acc/len(train_set)*100, 'Validation' : validation_acc/len(val_set)*100}, epoch + 1)
 
     print(f'Training finished!!')
     print(f'Total time : {time.time()/60 - start:.2f} min')
@@ -152,4 +153,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+    
     
