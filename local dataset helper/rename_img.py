@@ -1,4 +1,3 @@
-
 import glob
 import os
 
@@ -13,4 +12,3 @@ for Class in class_folder:
     for img in img_list:
         img_new = img.split('.png')[0] + '.png'
         os.rename(img, img_new)
-
