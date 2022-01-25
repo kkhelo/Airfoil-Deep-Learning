@@ -30,7 +30,7 @@ def get_first_order_slope(img_path):
             img_y[x,y] = (roi * Gy).sum()
     
     img = cv.merge([img, img_x, img_y])
-    img_path = img_path.replace('NACAUIUC_10C_filldf1_1123', 'NACAUIUC_10C_filldf1_1123_3channel_test')
+    img_path = img_path.replace('NACAUIUC_10C_filldf1_1123', 'NACAUIUC_10C_filldf1_1123_3channel')
     img_path = img_path.replace('.png', '.npy')
     np.save(img_path, img)
 
@@ -56,8 +56,8 @@ def get_second_order_slope(img_path):
             yx[x,y] = (roi * Gx).sum()  
             yy[x,y] = (roi * Gy).sum()
 
-    img = np.concatenate((img, xx, xy, yx, yy), axis=2)
-    img_path = img_path.replace('NACAUIUC_10C_filldf1_1123_3channel_test', 'NACAUIUC_10C_filldf1_1123_6channel_test')
+    img = np.concatenate((img, xx[..., None], xy[..., None], yx[..., None], yy[..., None]), axis=2)
+    img_path = img_path.replace('NACAUIUC_10C_filldf1_1123_3channel', 'NACAUIUC_10C_filldf1_1123_7channel')
     np.save(img_path, img)
 
 
@@ -72,7 +72,7 @@ def build_three_channel_npy(root, cpu_num : int = os.cpu_count()//2):
         if os.path.isfile(Class_list):
             continue
 
-        target_class_folder = Class_list.replace('NACAUIUC_10C_filldf1_1123', 'NACAUIUC_10C_filldf1_1123_3channel_test')
+        target_class_folder = Class_list.replace('NACAUIUC_10C_filldf1_1123', 'NACAUIUC_10C_filldf1_1123_3channel')
 
         if not os.path.exists(target_class_folder):
             os.makedirs(target_class_folder)
@@ -99,7 +99,7 @@ def build_seven_channel_npy(root, cpu_num : int = os.cpu_count()//2):
         if os.path.isfile(Class_list):
             continue
 
-        target_class_folder = Class_list.replace('NACAUIUC_10C_filldf1_1123_3channel_test', 'NACAUIUC_10C_filldf1_1123_6channel_test')
+        target_class_folder = Class_list.replace('NACAUIUC_10C_filldf1_1123_3channel', 'NACAUIUC_10C_filldf1_1123_7channel')
 
         if not os.path.exists(target_class_folder):
             os.makedirs(target_class_folder)
@@ -107,22 +107,25 @@ def build_seven_channel_npy(root, cpu_num : int = os.cpu_count()//2):
         img_list = os.path.join(Class_list, '*.npy')   
         img_list = glob.glob(img_list)    
 
+        
         # multiprocessing
         p = mp.Pool(cpu_num)
         p.map(get_second_order_slope, img_list)
         p.close()
         p.join()
 
-
+        # for img_path in img_list:
+        #     get_second_order_slope(img_path)
+        #     break
+    
 
 # function to build dataset order 
-def build_dataset_order(root, format = '*'):
+def build_dataset_order(root, train_ratio = 0.8, format = '*'):
 
     class_folder = os.path.join(root, '*')
 
     class_folder = glob.glob(class_folder)
 
-    train_ratio = 0.8
 
     train_img = []
     train_label = []
@@ -162,11 +165,13 @@ def build_dataset_order(root, format = '*'):
 
 if __name__ == '__main__':
 
+    # root = '..\\dataset\\NACAUIUC_10C_filldf1_1123\\'
     root = '..\\dataset\\NACAUIUC_10C_filldf1_1123_3channel\\'
-    # root = '..\\dataset\\NACAUIUC_10C_filldf1_1123_3channel\\'
+    # root = '..\\dataset\\NACAUIUC_10C_filldf1_1123_7channel\\'
 
     # format = '*.npy'
     # format = '*.png'
 
-    build_seven_channel_npy(root=root,cpu_num=6)
-    # build_dataset_order(root)
+    # build_seven_channel_npy(root=root,cpu_num=12)
+    # build_three_channel_npy(root=root, cpu_num=16)
+    build_dataset_order(root, train_ratio=0.9)
