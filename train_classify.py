@@ -50,7 +50,7 @@ def main():
 
     torch.set_num_threads(10)
 
-    test_name = '3channel_lr000005c_20ep_91data'
+    test_name = '3channel_lr000005c_20ep_80data'
     dataset_channel = 3
 
     batch_size = 32

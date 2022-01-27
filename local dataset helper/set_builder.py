@@ -174,4 +174,4 @@ if __name__ == '__main__':
 
     # build_seven_channel_npy(root=root,cpu_num=12)
     # build_three_channel_npy(root=root, cpu_num=16)
-    build_dataset_order(root, train_ratio=0.9)
+    build_dataset_order(root, train_ratio=0.8)
