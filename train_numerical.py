@@ -15,9 +15,9 @@ from network.ResNet50_PRelu import ResNet50_PRelu
 
 
 class Airfoil_Dataset_From_Images(Dataset):
-    def __init__(self, img_list, label_list, transform) -> None:
+    def __init__(self, img_list, transform) -> None:
         self.imgs = img_list
-        self.label = label_list
+        # self.label = label_list
         self.transform = transform
 
     def __getitem__(self, index):
@@ -26,7 +26,14 @@ class Airfoil_Dataset_From_Images(Dataset):
         img = img.convert('1')
         img = img.resize((224, 224))
         img = self.transform(img)
-        label = self.label[index]
+        label = fn.split('\\')[-1]
+        label = label.split('_')[0]
+
+        if label[0] == 'm':
+            label = -1 * float(label[1:-1:1])
+        else:
+            label = float(label)
+
 
         return img, label
 
@@ -35,15 +42,21 @@ class Airfoil_Dataset_From_Images(Dataset):
 
 
 class Airfoil_Dataset_From_NPY(Airfoil_Dataset_From_Images):
-    def __init__(self, img_list, label_list, transform) -> None:
-        super().__init__(img_list, label_list, transform)
+    def __init__(self, img_list, transform) -> None:
+        super().__init__(img_list, transform)
 
     def __getitem__(self, index):
         fn = self.imgs[index]
         img = np.load(fn)
         # img = img[:,:,1:]       # for two channels
         img = self.transform(img)
-        label = self.label[index]
+        label = fn.split('\\')[-1]
+        label = label.split('_')[0]
+
+        if label[0] == 'm':
+            label = -1 * float(label[1:-1:1])
+        else:
+            label = float(label)
 
         return img, label
 
@@ -52,37 +65,31 @@ def main():
 
     torch.set_num_threads(10)
 
-    test_name = 'sdf3_lr000005c_50ep_80data'
+    test_name = 'numerical_sdf3_lr000005c_50ep_03loss'
+    
     dataset_channel = 3
-
     batch_size = 32
-    epoch_num = 50
+    epoch_num = 100
     lr = 0.00005
     if_scheduler = False
     # model = torch.load('model/3channel_lr00008c_21-50ep.pk1')
-    model = ResNet50_PRelu(dataset_channel, 10)
-
+    model = ResNet50_PRelu(dataset_channel, 1)
+    loss_threshhold = 0.3
 
     transform = transforms.Compose([transforms.ToTensor()])
 
     if dataset_channel == 1:
         # 1 channel dataset
-        train_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_sdf1_1123/train_img.npy'), 
-                                    np.load('dataset/NACAUIUC_10C_sdf1_1123/train_label.npy'), transform)
-        val_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_sdf1_1123/val_img.npy'), 
-                                    np.load('dataset/NACAUIUC_10C_sdf1_1123/val_label.npy'), transform)
+        train_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_sdf1_1123/train_img.npy'), transform)
+        val_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_sdf1_1123/val_img.npy'), transform)
     elif dataset_channel == 3:
         # 3 channels dataset
-        train_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_sdf1_1123_3channel/train_img.npy'), 
-                                    np.load('dataset/NACAUIUC_10C_sdf1_1123_3channel/train_label.npy'), transform)
-        val_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_sdf1_1123_3channel/val_img.npy'), 
-                                    np.load('dataset/NACAUIUC_10C_sdf1_1123_3channel/val_label.npy'), transform)
+        train_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_sdf1_1123_3channel/train_img.npy'), transform)
+        val_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_sdf1_1123_3channel/val_img.npy'), transform)
     elif dataset_channel == 7:
-    # 7 channels dataset
-        train_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_filldf1_1123_7channel/train_img.npy'), 
-                                    np.load('dataset/NACAUIUC_10C_filldf1_1123_7channel/train_label.npy'), transform)
-        val_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_filldf1_1123_7channel/val_img.npy'), 
-                                    np.load('dataset/NACAUIUC_10C_filldf1_1123_7channel/val_label.npy'), transform)
+        # 7 channels dataset
+        train_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_filldf1_1123_7channel/train_img.npy'), transform)
+        val_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_filldf1_1123_7channel/val_img.npy'), transform)
 
     train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=True)
@@ -99,8 +106,10 @@ def main():
     model = model.to(device)
 
     
-    criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr, momentum=0.8)
+    # criterion = nn.CrossEntropyLoss()
+    criterion = nn.MSELoss(reduction='mean')
+    # optimizer = torch.optim.SGD(model.parameters(), lr, momentum=0.8)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=3, eta_min=0, last_epoch=-1)
     # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 3)
     record_batch = 30
@@ -113,21 +122,24 @@ def main():
         training_acc = 0
         model.train()
         for i, (images, labels) in enumerate(train_loader):
-            images, labels = images.float().to(device), labels.long().to(device)
+            images, labels = images.float().to(device), labels.float().to(device)
             optimizer.zero_grad()
             result = model(images)
+            result = torch.squeeze(result)
             loss = criterion(result, labels)
             training_loss += loss
             loss.backward()
             optimizer.step()
 
-            _, pred = torch.max(result, 1)
-            acc = (pred == labels).sum()
-            training_acc += acc.item()
+            acc = torch.abs(torch.sub(result, labels))
+            acc = (acc < loss_threshhold).float()
+            training_acc += torch.sum(acc).item()
 
             if (not (i+1) % record_batch) or ( i+1 == len(train_loader)):
-                print(f'Epoch : {epoch+1:03d}/{epoch_num:03d} | Batch : {i+1:04d}/{len(train_loader):04d} | Loss : {loss:.2f}')       
-        
+                print(f'Epoch : {epoch+1:03d}/{epoch_num:03d} | Batch : {i+1:04d}/{len(train_loader):04d} | Loss : {loss:.2f}') 
+                # print(f'Epoch : {epoch+1:03d}/{epoch_num:03d} | Batch : {i+1:04d}/{len(train_loader):04d} | Loss : {loss.item()}')       
+
+
         if if_scheduler:
             scheduler.step()
 
@@ -137,13 +149,16 @@ def main():
         model.eval()
         with torch.no_grad():
             for i, (images, labels) in enumerate(val_loader):
-                images, labels = images.float().to(device), labels.long().to(device)
+                images, labels = images.float().to(device), labels.float().to(device)
                 result = model(images)
+                result = torch.squeeze(result)
                 loss = criterion(result, labels)
                 validation_loss += loss
-                _, pred = torch.max(result, 1)
-                acc = (pred == labels).sum()
-                validation_acc += acc.item()
+
+                acc = torch.abs(torch.sub(result, labels))
+                acc = (acc < 0.5).float()
+                validation_acc += torch.sum(acc).item()
+
         
         print(f'Epoch {epoch+1:03d} finished | Traning acc : {training_acc/len(train_set)*100:.2f}% | Validation acc : {validation_acc/len(val_set)*100:.2f}%')
         print(f'Time elapsed : {time.time()/60 - start:.2f} min')
