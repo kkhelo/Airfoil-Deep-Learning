@@ -65,7 +65,7 @@ def main():
 
     torch.set_num_threads(10)
 
-    test_name = 'numerical_sdf3_lr000005c_50ep_03loss'
+    test_name = 'numerical_sdf3_lr000005c_100ep_03acc'
     
     dataset_channel = 3
     batch_size = 32
@@ -74,7 +74,7 @@ def main():
     if_scheduler = False
     # model = torch.load('model/3channel_lr00008c_21-50ep.pk1')
     model = ResNet50_PRelu(dataset_channel, 1)
-    loss_threshhold = 0.3
+    acc_threshhold = 0.3
 
     transform = transforms.Compose([transforms.ToTensor()])
 
@@ -132,12 +132,11 @@ def main():
             optimizer.step()
 
             acc = torch.abs(torch.sub(result, labels))
-            acc = (acc < loss_threshhold).float()
+            acc = (acc < acc_threshhold).float()
             training_acc += torch.sum(acc).item()
 
             if (not (i+1) % record_batch) or ( i+1 == len(train_loader)):
-                print(f'Epoch : {epoch+1:03d}/{epoch_num:03d} | Batch : {i+1:04d}/{len(train_loader):04d} | Loss : {loss:.2f}') 
-                # print(f'Epoch : {epoch+1:03d}/{epoch_num:03d} | Batch : {i+1:04d}/{len(train_loader):04d} | Loss : {loss.item()}')       
+                print(f'Epoch : {epoch+1:03d}/{epoch_num:03d} | Batch : {i+1:04d}/{len(train_loader):04d} | Loss : {loss:.2f}')     
 
 
         if if_scheduler:
@@ -156,7 +155,7 @@ def main():
                 validation_loss += loss
 
                 acc = torch.abs(torch.sub(result, labels))
-                acc = (acc < 0.5).float()
+                acc = (acc < acc_threshhold).float()
                 validation_acc += torch.sum(acc).item()
 
         
@@ -169,7 +168,7 @@ def main():
 
     print(f'Training finished!!')
     print(f'Total time : {time.time()/60 - start:.2f} min')
-    model_name = f'model/SDF_Resnet50/{test_name}.pk1'
+    model_name = f'model/{test_name}.pk1'
     torch.save(model, model_name)
     writer_loss.flush()
     writer_acc.flush()
