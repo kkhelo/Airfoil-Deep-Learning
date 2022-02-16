@@ -65,7 +65,7 @@ def main():
 
     torch.set_num_threads(10)
 
-    test_name = 'numerical_sdf1_lr000005c_100ep_3levelacc'
+    test_name = 'numerical_sdf1_lr000005c_100ep_3levelacc_L1'
     
     dataset_channel = 1
     batch_size = 32
@@ -109,7 +109,8 @@ def main():
 
     
     # criterion = nn.CrossEntropyLoss()
-    criterion = nn.MSELoss(reduction='mean')
+    # criterion = nn.MSELoss(reduction='mean')
+    criterion = nn.L1Loss()
     # optimizer = torch.optim.SGD(model.parameters(), lr, momentum=0.8)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=3, eta_min=0, last_epoch=-1)
