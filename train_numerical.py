@@ -65,7 +65,7 @@ def main():
 
     torch.set_num_threads(10)
 
-    test_name = 'numerical_sdf1_lr000005c_100ep_3levelacc_L1'
+    test_name = 'numerical_sdf1_lr000005c_100ep_3levelacc_L1_rotation'
     
     dataset_channel = 1
     batch_size = 32
@@ -76,7 +76,9 @@ def main():
     model = ResNet50_PRelu(dataset_channel, 1)
     # acc_threshhold = 0.3
 
-    transform = transforms.Compose([transforms.ToTensor()])
+    transform = transforms.Compose([transforms.ToTensor(),
+                                    transforms.RandomRotation(45)
+                                  ])
 
     if dataset_channel == 1:
         # 1 channel dataset
@@ -84,8 +86,8 @@ def main():
         val_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_sdf1_1123/val_img.npy'), transform)
     elif dataset_channel == 3:
         # 3 channels dataset
-        train_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_sdf1_1123_3channel/train_img.npy'), transform)
-        val_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_sdf1_1123_3channel/val_img.npy'), transform)
+        train_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_sdf1_1123_log_3channel/train_img.npy'), transform)
+        val_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_sdf1_1123_log_3channel/val_img.npy'), transform)
     elif dataset_channel == 7:
         # 7 channels dataset
         train_set = Airfoil_Dataset_From_NPY(np.load('dataset/NACAUIUC_10C_filldf1_1123_7channel/train_img.npy'), transform)
@@ -107,7 +109,7 @@ def main():
 
     model = model.to(device)
 
-    
+
     # criterion = nn.CrossEntropyLoss()
     # criterion = nn.MSELoss(reduction='mean')
     criterion = nn.L1Loss()
@@ -125,6 +127,7 @@ def main():
         training_acc1 = 0
         training_acc3 = 0
         training_acc5 = 0
+
 
         model.train()
         for i, (images, labels) in enumerate(train_loader):
@@ -206,5 +209,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    
-    
