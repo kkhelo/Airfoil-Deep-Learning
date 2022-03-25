@@ -65,11 +65,11 @@ def main():
 
     torch.set_num_threads(10)
 
-    test_name = 'numerical_sdf1_lr000005c_100ep_3levelacc_L1_rotation'
+    test_name = 'numerical_sdf1_lr000005c_200ep_3levelacc_L1_rotation'
     
     dataset_channel = 1
     batch_size = 32
-    epoch_num = 100
+    epoch_num = 200
     lr = 0.00005
     if_scheduler = False
     # model = torch.load('model/3channel_lr00008c_21-50ep.pk1')
