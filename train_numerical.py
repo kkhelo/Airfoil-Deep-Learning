@@ -65,19 +65,20 @@ def main():
 
     torch.set_num_threads(10)
 
-    test_name = 'numerical_sdf1_lr000005c_200ep_3levelacc_L1_rotation'
+    test_name = 'numerical_sdf1_lr000005step_200ep_3levelacc_L1_rotation10_flip'
     
     dataset_channel = 1
     batch_size = 32
     epoch_num = 200
     lr = 0.00005
-    if_scheduler = False
-    # model = torch.load('model/3channel_lr00008c_21-50ep.pk1')
+    if_scheduler = True
+    # model = torch.load('model/SDF_Resnet50_numerical/PRelu/numerical_sdf1_lr000005step_200ep_3levelacc_L1_rotation')
     model = ResNet50_PRelu(dataset_channel, 1)
-    # acc_threshhold = 0.3
 
     transform = transforms.Compose([transforms.ToTensor(),
-                                    transforms.RandomRotation(45)
+                                    transforms.RandomRotation(10),
+                                    transforms.RandomHorizontalFlip(),
+                                    transforms.RandomVerticalFlip()
                                   ])
 
     if dataset_channel == 1:
@@ -115,8 +116,9 @@ def main():
     criterion = nn.L1Loss()
     # optimizer = torch.optim.SGD(model.parameters(), lr, momentum=0.8)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=3, eta_min=0, last_epoch=-1)
-    # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 3)
+    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=3, eta_min=0, last_epoch=-1)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 50)
+    
     record_batch = 30
 
     start = time.time()/60
