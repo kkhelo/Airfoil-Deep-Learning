@@ -6,7 +6,6 @@ dataset order/
 **/*.pk1
 log/
 **/test.py
-reproduceDFP/
 
 # Byte-compiled / optimized / DLL files
 **/__pycache__/
