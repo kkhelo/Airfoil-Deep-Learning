@@ -57,12 +57,12 @@ class UNet(nn.Module):
         self.downLayer6 = DownSamplingblock(channel*8, channel*8, bn=True , relu=False, size=2, pad=0)
         self.downLayer7 = DownSamplingblock(channel*8, channel*8, bn=False, relu=False, size=2, pad=0)
 
-        self.upLayer7 = UpSamplingBlock(channel*8, channel*8, bn=True, relu=True, size=2, pad=0)
-        self.upLayer6 = UpSamplingBlock(channel*16, channel*8, bn=True, relu=True, size=2, pad=0)
-        self.upLayer5 = UpSamplingBlock(channel*16, channel*4, bn=True, relu=True)
-        self.upLayer4 = UpSamplingBlock(channel*8, channel*2, bn=True, relu=True)
-        self.upLayer3 = UpSamplingBlock(channel*4, channel*2, bn=True, relu=True)
-        self.upLayer2 = UpSamplingBlock(channel*4, channel, bn=True, relu=True)
+        self.upLayer7   = UpSamplingBlock(channel*8 , channel*8, bn=True, relu=True, size=2, pad=0)
+        self.upLayer6   = UpSamplingBlock(channel*16, channel*8, bn=True, relu=True, size=2, pad=0)
+        self.upLayer5   = UpSamplingBlock(channel*16, channel*4, bn=True, relu=True)
+        self.upLayer4   = UpSamplingBlock(channel*8 , channel*2, bn=True, relu=True)
+        self.upLayer3   = UpSamplingBlock(channel*4 , channel*2, bn=True, relu=True)
+        self.upLayer2   = UpSamplingBlock(channel*4 , channel  , bn=True, relu=True)
 
         upLayer1 = []
         upLayer1.append(nn.ReLU(inplace=True))
