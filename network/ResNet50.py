@@ -1,4 +1,4 @@
-# Author : Bo Yuan You
+# Contributor : B.Y. You
 # 2021/12/16
 # CVDL 2021 HW2
 # network architect
@@ -36,7 +36,6 @@ class Identical_Block(nn.Module):
         out = self.net(x)
         out += residual
         out = self.relu(out)
-        
 
         return out
 

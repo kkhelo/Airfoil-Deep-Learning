@@ -1,4 +1,4 @@
-# Author : Bo Yuan You
+# Contributor : B.Y. You
 # 2022/02/09
 # Resnet50 no Relu for SDF dataset
 

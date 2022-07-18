@@ -1,7 +1,6 @@
-# Author : Bo Yuan You
-# 2021/12/16
-# CVDL 2021 HW2
-# network architect
+# Contributor : B.Y. You
+# 2022/02/09
+# Resnet50 partial Relu for SDF dataset
 
 import torch.nn as nn
 
