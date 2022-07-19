@@ -84,7 +84,7 @@ class UNet(nn.Module):
         upOut3   = self.upLayer3(torch.cat([upOut4, downOut3]))
         upOut2   = self.upLayer2(torch.cat([upOut3, downOut2]))
         upOut1   = self.upLayer1(torch.cat([upOut2, downOut1]))
-
+        
         return upOut1
         
     
