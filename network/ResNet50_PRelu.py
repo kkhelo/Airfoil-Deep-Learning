@@ -4,7 +4,6 @@
 
 import torch.nn as nn
 
-
 class Identical_Block(nn.Module):
 
     def __init__(self, in_channel, filter) -> None:
