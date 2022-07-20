@@ -2,7 +2,7 @@
 NACAUIUC_TRAINING_1123/
 original_airfoil/
 dataset/
-dataset order/
+!dataset/comAirfoilDataset.py
 **/*.pk1
 log/
 **/test.py
