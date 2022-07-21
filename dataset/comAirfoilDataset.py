@@ -36,9 +36,10 @@ class ComAirfoilDataset(Dataset):
         self.preprocessingMode = preprocessingMode
 
         self.__loadData()
+        self.baseDataLength = self.length
         print('\n' + '*'*25)
         print(f' Load base dataset completed. ')
-        print(f' Total data amount : {self.length:d}')
+        print(f' Total data amount : {self.baseDataLength:d}')
         print('*'*25 + '\n')
 
         if self.preprocessingMode==self.OFFSETREMOVAL: 

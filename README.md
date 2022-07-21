@@ -25,7 +25,7 @@ Comming soon!
 Usage
 ------------
 
-Before training, take a look at `local dataset helper` folder :
+Before training, take a look at `helper` folder :
 * `set_builder.py` helps you make dataset that can be feed into our custom torch.Dataset.<br>  
   It can also expand airfoil df plot to 3 channels, by using the gradient of df plot.<br><br>
 * Others :  Comming soon.<br>
