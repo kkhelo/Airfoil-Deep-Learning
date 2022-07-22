@@ -12,6 +12,7 @@ class logWriter():
     def __init__(self, logDir:str='./log/trainingLog/', dataset:ComAirfoilDataset=None) -> None:
         self.__makeUniqueLogFile(logDir)
         self.__writeTitle()
+        if dataset is not None : self.__writeDatasetInfo(dataset)
 
     def __makeUniqueLogFile(self, logDir):
         self.date = str(datetime.date.today())
@@ -39,7 +40,7 @@ class logWriter():
             of.write(f'Starting time : {time}\n\n')
             of.write('*' * 30 + '\n')
 
-    def writeDatasetInfo(self, dataset:ComAirfoilDataset):
+    def __writeDatasetInfo(self, dataset:ComAirfoilDataset):
         """
         Write dataset info into log file, passing comAirfoilDataset as parameter.
         """
@@ -47,7 +48,7 @@ class logWriter():
             of.write(f'Using base dataset : {dataset.baseDataDir}\n')
             of.write(f'Base dataset size : {dataset.baseDataLength}\n')
             if dataset.mode == ComAirfoilDataset.OFFSETREMOVAL:
-                of.write('Applying preprocessing mode : Offset removal\n')
+                of.write('Applying preprocessing mode : Offset removal \n')
                 of.write(f' Mean value aquired from base dataset as below : \n')
                 of.write(f' Pressure : {dataset.Offset[0]:.2f}\n')
                 of.write(f' X-direction velocity : {dataset.Offset[1]:.2f}\n')
@@ -56,17 +57,22 @@ class logWriter():
             else:
                 of.write('Applying preprocessing mode : Dimensionless\n')
 
-            of.write(f' Normalization value aquired from base dataset as below : ')
+            of.write(f' Normalization value aquired from base dataset as below : \n')
             of.write(f' Initial condition X-direction velocity : {dataset.inputsNorm[0]:.2f}\n')
             of.write(f' Initial condition Y-direction velocity : {dataset.inputsNorm[1]:.2f}\n')
             of.write(f' Pressure : {dataset.targetsNorm[0]:.2f}\n')
             of.write(f' X-direction velocity : {dataset.targetsNorm[1]:.2f}\n')
             of.write(f' Y-direction velocity : {dataset.targetsNorm[2]:.2f}\n')
             of.write(f' Temperature : {dataset.targetsNorm[3]:.2f}\n')
-            
+            of.write('*' * 30 + '\n')
 
-            
+    def writeLog(self, lines):
+        with open(self.__logName, 'a+') as of:
+            if type(lines) is str : lines = [lines]
+            for line in lines:
+                of.write(line + '\n')
 
+        
 class resultImagesGenerator():
     """
     Generator class makes three type of images :

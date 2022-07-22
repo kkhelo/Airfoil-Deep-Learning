@@ -78,12 +78,12 @@ class UNet(nn.Module):
         downOut6 = self.downLayer6(downOut5)
         downOut7 = self.downLayer7(downOut6)
         upOut7   = self.upLayer7(downOut7)
-        upOut6   = self.upLayer6(torch.cat([upOut7, downOut6]))
-        upOuT5   = self.upLayer5(torch.cat([upOut6, downOut5]))
-        upOut4   = self.upLayer4(torch.cat([upOuT5, downOut4]))
-        upOut3   = self.upLayer3(torch.cat([upOut4, downOut3]))
-        upOut2   = self.upLayer2(torch.cat([upOut3, downOut2]))
-        upOut1   = self.upLayer1(torch.cat([upOut2, downOut1]))
+        upOut6   = self.upLayer6(torch.cat([upOut7, downOut6],1))
+        upOuT5   = self.upLayer5(torch.cat([upOut6, downOut5],1))
+        upOut4   = self.upLayer4(torch.cat([upOuT5, downOut4],1))
+        upOut3   = self.upLayer3(torch.cat([upOut4, downOut3],1))
+        upOut2   = self.upLayer2(torch.cat([upOut3, downOut2],1))
+        upOut1   = self.upLayer1(torch.cat([upOut2, downOut1],1))
         
         return upOut1
         
