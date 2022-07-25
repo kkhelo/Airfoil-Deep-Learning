@@ -36,6 +36,7 @@ class ComAirfoilDataset(Dataset):
         self.preprocessingMode = preprocessingMode
 
         self.__loadData()
+        self.baseDataLength = self.length
         print('\n' + '*'*25)
         print(f' Load base dataset completed. ')
         print(f' Total data amount : {self.length:d}')
@@ -173,6 +174,9 @@ class ComAirfoilDataset(Dataset):
         return a, b
 
     def testDataBuild(self, testDataDir):
+        """
+        Build test dataset 
+        """
         self.dataDir = testDataDir
         self.__loadData()
 
