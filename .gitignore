@@ -6,6 +6,7 @@ dataset/
 **/*.pk1
 log/
 **/test.py
+test.txt
 
 # Byte-compiled / optimized / DLL files
 **/__pycache__/
