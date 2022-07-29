@@ -34,6 +34,7 @@ in_channel, out_channel = 3, 4
 expo = 6
 # Network
 network = UNet(in_channel, out_channel, expo)
+
 result, params_info = summary_string(network, (in_channel, 128, 128))
 print(result)
 # print(params_info)
