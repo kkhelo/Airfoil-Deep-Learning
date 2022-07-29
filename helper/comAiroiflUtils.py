@@ -94,6 +94,7 @@ class resultImagesGenerator():
     def setPredAndGround(self, _outputs, _targets, folderName):
         outputs, targets = _outputs, _targets
         self.folderName = os.path.join(self.root, folderName)
+        mkdir([self.folderName])
         for i in range(self.channels):
             self.outputs[i] = np.flipud(outputs[i].transpose())
             self.targets[i] = np.flipud(targets[i].transpose())
@@ -132,7 +133,7 @@ class resultImagesGenerator():
             plt.axis('off')
 
         plt.tight_layout()
-        plt.savefig(os.path.join(self.folderName, 'Diff_by_Global'))
+        plt.savefig(os.path.join(self.folderName, 'Diff by Global'))
         
     def localDiff(self):
         """
@@ -157,7 +158,7 @@ class resultImagesGenerator():
             plt.axis('off')
 
         plt.tight_layout()
-        plt.savefig(os.path.join(self.folderName, 'Diff_by_Local'))
+        plt.savefig(os.path.join(self.folderName, 'Diff by Local'))
 
 
 if __name__ == '__main__':
