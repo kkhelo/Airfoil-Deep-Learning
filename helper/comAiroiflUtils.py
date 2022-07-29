@@ -35,36 +35,41 @@ class logWriter():
         trainSet = self.__logName.split('-')[-1][0]
 
         with open(self.__logName, 'a+') as of:
-            of.write(f'** Train-{trainSet} **\n')
+            of.write(f'***** Train-{trainSet} *****\n')
             of.write(f'Starting Date : {self.date}\n')
-            of.write(f'Starting time : {time}\n\n')
-            of.write('*' * 30 + '\n')
+            of.write(f'Starting time : {time}\n')
+            of.write('*' * 64 + '\n')
 
     def __writeDatasetInfo(self, dataset:ComAirfoilDataset):
         """
         Write dataset info into log file, passing comAirfoilDataset as parameter.
         """
+        mode = 'train' if dataset.mode == ComAirfoilDataset.TRAIN else 'test'
         with open(self.__logName, 'a+') as of:
             of.write(f'Using base dataset : {dataset.baseDataDir}\n')
             of.write(f'Base dataset size : {dataset.baseDataLength}\n')
-            if dataset.mode == ComAirfoilDataset.OFFSETREMOVAL:
+            of.write(f'Dataset usage mode : {mode}\n')
+            if dataset.preprocessingMode == ComAirfoilDataset.OFFSETREMOVAL:
                 of.write('Applying preprocessing mode : Offset removal \n')
-                of.write(f' Mean value aquired from base dataset as below : \n')
-                of.write(f' Pressure : {dataset.Offset[0]:.2f}\n')
-                of.write(f' X-direction velocity : {dataset.Offset[1]:.2f}\n')
-                of.write(f' Y-direction velocity : {dataset.Offset[2]:.2f}\n')
-                of.write(f' Temperature : {dataset.Offset[3]:.2f}\n')
+                of.write('*' * 64 + '\n')
+                of.write(f'Mean value aquired from base dataset as below : \n')
+                of.write(f'Pressure : {dataset.Offset[0]:.2f}\n')
+                of.write(f'X-direction velocity : {dataset.Offset[1]:.2f}\n')
+                of.write(f'Y-direction velocity : {dataset.Offset[2]:.2f}\n')
+                of.write(f'Temperature : {dataset.Offset[3]:.2f}\n')
+                of.write('*' * 64 + '\n')
             else:
                 of.write('Applying preprocessing mode : Dimensionless\n')
+                of.write('*' * 64 + '\n')
 
-            of.write(f' Normalization value aquired from base dataset as below : \n')
-            of.write(f' Initial condition X-direction velocity : {dataset.inputsNorm[0]:.2f}\n')
-            of.write(f' Initial condition Y-direction velocity : {dataset.inputsNorm[1]:.2f}\n')
-            of.write(f' Pressure : {dataset.targetsNorm[0]:.2f}\n')
-            of.write(f' X-direction velocity : {dataset.targetsNorm[1]:.2f}\n')
-            of.write(f' Y-direction velocity : {dataset.targetsNorm[2]:.2f}\n')
-            of.write(f' Temperature : {dataset.targetsNorm[3]:.2f}\n')
-            of.write('*' * 30 + '\n')
+            of.write(f'Normalization value aquired from base dataset as below : \n')
+            of.write(f'Initial X-direction velocity : {dataset.inputsNorm[0]:.2f}\n')
+            of.write(f'Initial Y-direction velocity : {dataset.inputsNorm[1]:.2f}\n')
+            of.write(f'Pressure : {dataset.targetsNorm[0]:.2f}\n')
+            of.write(f'X-direction velocity : {dataset.targetsNorm[1]:.2f}\n')
+            of.write(f'Y-direction velocity : {dataset.targetsNorm[2]:.2f}\n')
+            of.write(f'Temperature : {dataset.targetsNorm[3]:.2f}\n')
+            of.write('*' * 64 + '\n')
 
     def writeLog(self, lines):
         with open(self.__logName, 'a+') as of:
@@ -80,12 +85,18 @@ class resultImagesGenerator():
         * Global differnece
         * Local difference
     """
-    def __init__(self, _outputs, _targets) -> None:
-        self.outputs, self.targets = np.copy(_outputs), np.copy(_targets)
-        self.channels = self.outputs.shape[0]
+    def __init__(self, channels:tuple=4, resolution:int=128, root:str='./log/resultImages/') -> None:
+        self.outputs, self.targets = np.zeros((channels, resolution, resolution)), np.zeros((channels, resolution, resolution))
+        self.channels = channels
+        self.root = root
+        mkdir([root])
+        
+    def setPredAndGround(self, _outputs, _targets, folderName):
+        outputs, targets = _outputs, _targets
+        self.folderName = os.path.join(self.root, folderName)
         for i in range(self.channels):
-            self.outputs[i] = np.flipud(self.outputs[i].transpose())
-            self.targets[i] = np.flipud(self.targets[i].transpose())
+            self.outputs[i] = np.flipud(outputs[i].transpose())
+            self.targets[i] = np.flipud(targets[i].transpose())
         
     def predVsGround(self):
         """
@@ -104,7 +115,7 @@ class resultImagesGenerator():
             plt.colorbar()
 
         plt.tight_layout()
-        plt.savefig('Pred vs Ground')
+        plt.savefig(os.path.join(self.folderName, 'Pred vs Ground'))
 
     def globalDiff(self):
         """
@@ -121,7 +132,7 @@ class resultImagesGenerator():
             plt.axis('off')
 
         plt.tight_layout()
-        plt.savefig('Diff_by_Global')
+        plt.savefig(os.path.join(self.folderName, 'Diff_by_Global'))
         
     def localDiff(self):
         """
@@ -146,7 +157,7 @@ class resultImagesGenerator():
             plt.axis('off')
 
         plt.tight_layout()
-        plt.savefig('Diff_by_Local')
+        plt.savefig(os.path.join(self.folderName, 'Diff_by_Local'))
 
 
 if __name__ == '__main__':

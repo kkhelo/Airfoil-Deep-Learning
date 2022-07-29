@@ -7,11 +7,17 @@
 # https://github.com/thunil/Deep-Flow-Prediction/blob/master/train/dataset.py
 #
 ##################
+#
+# 22/07/26 added new feature : split data to ./train and ./val folder
+# Call from terminal directly with 'py comAirfoilDataset.py {root}}'
+#
+##################
 
-import numpy as np
-import math
+
+import os, shutil, sys
+import math, random, numpy as np
 from glob import glob
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import Dataset
 
 
 class ComAirfoilDataset(Dataset):
@@ -37,46 +43,42 @@ class ComAirfoilDataset(Dataset):
 
         self.__loadData()
         self.baseDataLength = self.length
-        print('\n' + '*'*25)
+        print('*'*25)
         print(f' Load base dataset completed. ')
         print(f' Total data amount : {self.length:d}')
-        print('*'*25 + '\n')
 
         if self.preprocessingMode==self.OFFSETREMOVAL: 
             self.__getPTMeanValue()
             if self.mode==self.TRAIN: 
                 self.__removeOffset()
-                print('\n' + '*'*25)
-                print(f' Base dataset offset removal completed. ')
-                print('*'*25 + '\n')
+                print(f' Base dataset offset removal completed. ')              
         elif self.preprocessingMode==self.DIMENSIONLESS:
             if self.mode==self.TRAIN: 
                 self.__dimensionless()
-                print('\n' + '*'*25)
                 print(f' Base dataset dimensionless completed. ')
-                print('*'*25 + '\n')
         else:
-            print('\n' + '*'*25)
+            print('*'*25)
             print(' Preprocessing mode code error, no prprocessing is applied. ')
-            print('*'*25 + '\n')
             return
         
         self.__getNormalizationVlaue()
         if self.mode == self.TRAIN : self.__normalization()
+        print(' Normalization completed.')
+        print('*'*25)
             
     def __loadData(self):
-        fileList = glob(self.dataDir+'*')
+        fileList = glob(os.path.join(self.dataDir, '*.npz'))
         self.length = len(fileList)
         self.inputs = np.zeros((self.length, 3, 128, 128))
         self.targets = np.zeros((self.length, 4, 128, 128))
 
         for i in range(self.length):
             data = np.load(fileList[i])['a']
-            self.inputs = data[0:3]
-            self.targets = data[3:]
+            self.inputs[i] = data[0:3]
+            self.targets[i] = data[3:]
 
     def __getPTMeanValue(self):
-        self.Offset = np.zeros((4,1))
+        self.Offset = np.zeros((4,))
         
         for i in range(self.length):
             temp = self.targets[i,:,:,:].copy()
@@ -86,14 +88,13 @@ class ComAirfoilDataset(Dataset):
         
         for i in range(4):
             self.Offset[i] /= self.length
-        
-        print('\n' + '*'*25)
+
+        print('*'*25)
         print(f' Mean value aquired from base dataset as below : ')
         print(f' Pressure : {self.Offset[0]:.2f}')
         print(f' X-direction velocity : {self.Offset[1]:.2f}')
         print(f' Y-direction velocity : {self.Offset[2]:.2f}')
         print(f' Temperature : {self.Offset[3]:.2f}')
-        print('*'*25 + '\n')
 
     def __removeOffset(self):
         OffseyArray = np.ones((4,128,128))
@@ -115,23 +116,22 @@ class ComAirfoilDataset(Dataset):
             self.targets[i,3,:,:] /= TDLess
 
     def __getNormalizationVlaue(self):
-        self.inputsNorm = np.zeros((2, 1))
-        self.targetsNorm = np.zeros((4, 1))
+        self.inputsNorm = np.zeros((2,))
+        self.targetsNorm = np.zeros((4,))
 
         for i in range(2):
             self.inputsNorm[i] = np.max(np.abs(self.inputs[:,i,:,:]))
         for i in range(4):
             self.targetsNorm[i] = np.max(np.abs(self.targets[:,i,:,:]))
-        
-        print('\n' + '*'*25)
+    
+        print('*'*25)
         print(f' Normalization value aquired from base dataset as below : ')
-        print(f' Initial condition X-direction velocity : {self.inputsNorm[0]:.2f}')
-        print(f' Initial condition Y-direction velocity : {self.inputsNorm[1]:.2f}')
+        print(f' Initial X-direction velocity : {self.inputsNorm[0]:.2f}')
+        print(f' Initial Y-direction velocity : {self.inputsNorm[1]:.2f}')
         print(f' Pressure : {self.targetsNorm[0]:.2f}')
         print(f' X-direction velocity : {self.targetsNorm[1]:.2f}')
         print(f' Y-direction velocity : {self.targetsNorm[2]:.2f}')
         print(f' Temperature : {self.targetsNorm[3]:.2f}')
-        print('*'*25 + '\n')
 
     def __normalization(self):
         for i in range(2):
@@ -180,37 +180,87 @@ class ComAirfoilDataset(Dataset):
         self.dataDir = testDataDir
         self.__loadData()
 
-        print('\n' + '*'*25)
+        print('*'*25)
         print(f' Load test dataset completed. ')
         print(f' Total test data amount : {self.length:d} ')
-        print('*'*25 + '\n')
 
         if self.preprocessingMode==self.OFFSETREMOVAL: 
             self.__removeOffset()
-            print('\n' + '*'*25)
+            print('*'*25)
             print(f' Test dataset offset removal completed. ')
             print(f' Mean value used for test dataset as below : ')
             print(f' Pressure : {self.Offset[0]:.2f}')
             print(f' X-direction velocity : {self.Offset[1]:.2f}')
             print(f' Y-direction velocity : {self.Offset[2]:.2f}')
             print(f' Temperature : {self.Offset[3]:.2f}')
-            print('*'*25 + '\n')
         elif self.preprocessingMode==self.DIMENSIONLESS:
             self.__dimensionless()
-            print('\n' + '*'*25)
+            print('*'*25)
             print(f' Test dataset dimensionless completed. ')
-            print('*'*25 + '\n')
         else:
-            print('\n' + '*'*25)
+            print('*'*25)
             print(' Preprocessing mode code error, no prprocessing is applied. ')
-            print('*'*25 + '\n')
             return
 
         self.__normalization()
+        print('*'*25)
         print(f' Normalization value used for test dataset as below : ')
-        print(f' Initial condition X-direction velocity : {self.inputsNorm[0]:.2f}')
-        print(f' Initial condition Y-direction velocity : {self.inputsNorm[1]:.2f}')
+        print(f' Initial X-direction velocity : {self.inputsNorm[0]:.2f}')
+        print(f' Initial Y-direction velocity : {self.inputsNorm[1]:.2f}')
         print(f' Pressure : {self.targetsNorm[0]:.2f}')
         print(f' X-direction velocity : {self.targetsNorm[1]:.2f}')
         print(f' Y-direction velocity : {self.targetsNorm[2]:.2f}')
         print(f' Temperature : {self.targetsNorm[3]:.2f}')
+
+
+class ValComAirfoilDataset(ComAirfoilDataset):
+    def __init__(self, dataDir:str, trainDataset:ComAirfoilDataset):
+        self.dataDir = dataDir
+        self.__loadData()
+        print('*'*25)
+        print(f' Load validation dataset completed. ')
+        print(f' Total data amount : {self.length:d}')
+
+        if trainDataset.preprocessingMode == ComAirfoilDataset.OFFSETREMOVAL:
+            self.Offset = trainDataset.Offset
+            self.__removeOffset()
+            print(' Validation dataset offset removal completed.')
+        else:
+            self.__dimensionless()
+        
+        self.inputsNorm, self.targetsNorm = trainDataset.inputsNorm, trainDataset.targetsNorm
+        self.__normalization()
+    
+    def __len__(self):
+        return self.length
+
+    def __getitem__(self, index):
+        return self.inputs[index], self.targets[index]
+        
+
+def splitTrainAndVal(dataDir : str, proportion:float=0.2)->None:
+
+    path = dataDir + '*.npz'
+    data = glob(path)
+    totalLength = len(data)
+    valLength = int(totalLength*proportion)
+    random.shuffle(data)
+    valData = data[:valLength]
+    valDir = dataDir + 'val/'
+    trainData = data[valLength:]
+    trainDir = dataDir + 'train/'
+    print(valDir, trainDir)
+    if not os.path.exists(valDir):
+        os.mkdir(valDir)
+    for data in valData:
+        shutil.move(data, valDir)
+
+    if not os.path.exists(trainDir):
+        os.mkdir(trainDir)
+    for data in trainData:
+        shutil.move(data, trainDir)
+
+
+if __name__ == '__main__':
+    dataDir=sys.argv[1]
+    splitTrainAndVal(dataDir)
