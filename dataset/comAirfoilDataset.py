@@ -41,7 +41,7 @@ class ComAirfoilDataset(Dataset):
         self.mode = mode
         self.preprocessingMode = preprocessingMode
 
-        self.__loadData()
+        self._loadData()
         self.baseDataLength = self.length
         print('*'*25)
         print(f' Load base dataset completed. ')
@@ -50,11 +50,11 @@ class ComAirfoilDataset(Dataset):
         if self.preprocessingMode==self.OFFSETREMOVAL: 
             self.__getPTMeanValue()
             if self.mode==self.TRAIN: 
-                self.__removeOffset()
+                self._removeOffset()
                 print(f' Base dataset offset removal completed. ')              
         elif self.preprocessingMode==self.DIMENSIONLESS:
             if self.mode==self.TRAIN: 
-                self.__dimensionless()
+                self._dimensionless()
                 print(f' Base dataset dimensionless completed. ')
         else:
             print('*'*25)
@@ -62,11 +62,11 @@ class ComAirfoilDataset(Dataset):
             return
         
         self.__getNormalizationVlaue()
-        if self.mode == self.TRAIN : self.__normalization()
+        if self.mode == self.TRAIN : self._normalization()
         print(' Normalization completed.')
         print('*'*25)
             
-    def __loadData(self):
+    def _loadData(self):
         fileList = glob(os.path.join(self.dataDir, '*.npz'))
         self.length = len(fileList)
         self.inputs = np.zeros((self.length, 3, 128, 128))
@@ -96,7 +96,7 @@ class ComAirfoilDataset(Dataset):
         print(f' Y-direction velocity : {self.Offset[2]:.2f}')
         print(f' Temperature : {self.Offset[3]:.2f}')
 
-    def __removeOffset(self):
+    def _removeOffset(self):
         OffseyArray = np.ones((4,128,128))
         for i in range(4):
             OffseyArray[i] *= self.Offset[i]
@@ -106,7 +106,7 @@ class ComAirfoilDataset(Dataset):
                 self.targets[i,j,:,:] -= OffseyArray[j]
                 self.targets[i,j,:,:] -= self.targets[i,j,:,:] * self.inputs[i,2,:,:]
 
-    def __dimensionless(self):
+    def _dimensionless(self):
         PDLess, TDLess = 100000, 300
         for i in range(self.length):
             VDLess = math.sqrt(self.inputs[i,0,0,0]**2 + self.inputs[i,1,0,0]**2)
@@ -133,7 +133,7 @@ class ComAirfoilDataset(Dataset):
         print(f' Y-direction velocity : {self.targetsNorm[2]:.2f}')
         print(f' Temperature : {self.targetsNorm[3]:.2f}')
 
-    def __normalization(self):
+    def _normalization(self):
         for i in range(2):
             self.inputs[:,i,:,:] /= self.inputsNorm[i]
         for i in range(4):
@@ -178,14 +178,14 @@ class ComAirfoilDataset(Dataset):
         Build test dataset 
         """
         self.dataDir = testDataDir
-        self.__loadData()
+        self._loadData()
 
         print('*'*25)
         print(f' Load test dataset completed. ')
         print(f' Total test data amount : {self.length:d} ')
 
         if self.preprocessingMode==self.OFFSETREMOVAL: 
-            self.__removeOffset()
+            self._removeOffset()
             print('*'*25)
             print(f' Test dataset offset removal completed. ')
             print(f' Mean value used for test dataset as below : ')
@@ -194,7 +194,7 @@ class ComAirfoilDataset(Dataset):
             print(f' Y-direction velocity : {self.Offset[2]:.2f}')
             print(f' Temperature : {self.Offset[3]:.2f}')
         elif self.preprocessingMode==self.DIMENSIONLESS:
-            self.__dimensionless()
+            self._dimensionless()
             print('*'*25)
             print(f' Test dataset dimensionless completed. ')
         else:
@@ -202,7 +202,7 @@ class ComAirfoilDataset(Dataset):
             print(' Preprocessing mode code error, no prprocessing is applied. ')
             return
 
-        self.__normalization()
+        self._normalization()
         print('*'*25)
         print(f' Normalization value used for test dataset as below : ')
         print(f' Initial X-direction velocity : {self.inputsNorm[0]:.2f}')
@@ -216,28 +216,27 @@ class ComAirfoilDataset(Dataset):
 class ValComAirfoilDataset(ComAirfoilDataset):
     def __init__(self, dataDir:str, trainDataset:ComAirfoilDataset):
         self.dataDir = dataDir
-        self.__loadData()
-        print('*'*25)
+        self._loadData()
         print(f' Load validation dataset completed. ')
         print(f' Total data amount : {self.length:d}')
+        print('*'*25)
 
         if trainDataset.preprocessingMode == ComAirfoilDataset.OFFSETREMOVAL:
             self.Offset = trainDataset.Offset
-            self.__removeOffset()
+            self._removeOffset()
             print(' Validation dataset offset removal completed.')
         else:
-            self.__dimensionless()
+            self._dimensionless()
         
         self.inputsNorm, self.targetsNorm = trainDataset.inputsNorm, trainDataset.targetsNorm
-        self.__normalization()
-    
+        self._normalization()
+
     def __len__(self):
         return self.length
 
     def __getitem__(self, index):
         return self.inputs[index], self.targets[index]
         
-
 def splitTrainAndVal(dataDir : str, proportion:float=0.2)->None:
 
     path = dataDir + '*.npz'
