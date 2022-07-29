@@ -23,9 +23,9 @@ from network.UNet import UNet
 ####### Training settings ########
 
 # Numbers of training epochs
-epochs = 200
+epochs = 3000
 # Batch size
-batchSize = 8
+batchSize = 32
 # Learning rate
 lr = 0.0005
 # Inputs channels, outputs channels
@@ -49,9 +49,9 @@ demoindex = 5
 ######## Dataset settings ########
 
 # Dataset directory.
-dataDir = 'dataset/OpenFOAM_com_airfoil/train/'
-# Validation dataset directory (optional).
-valDataDir = 'dataset/OpenFOAM_com_airfoil/val/' 
+dataDir = 'dataset/OpenFOAM_com_airfoil_4619/train/'
+# Validation dataset directory .
+valDataDir = 'dataset/OpenFOAM_com_airfoil_4619/val/' 
 # Dataset preprocessing mode
 preprocessingMode = ComAirfoilDataset.OFFSETREMOVAL
 # Dataset usage mode, train or test.
