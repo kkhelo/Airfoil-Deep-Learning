@@ -105,11 +105,11 @@ class resultImagesGenerator():
         """
         plt.figure(figsize=(12,6))
         for i in range(self.channels):
-            plt.subplot(2,self.channels,i)
+            plt.subplot(2,self.channels,i+1)
             plt.contourf(self.outputs[i], 100)
             plt.axis('off')
             plt.colorbar()
-            plt.subplot(2,self.channels,i+self.channels)
+            plt.subplot(2,self.channels,i+1+self.channels)
             plt.contourf(self.targets[i], 100)
             plt.axis('off')
             plt.colorbar()

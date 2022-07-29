@@ -37,7 +37,7 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 network = UNet(in_channel, out_channel, expo).to(device)
 networkSummary, _ = summary_string(network, (in_channel, 128, 128), device=device)
 # CPU maximum number
-cpuMax = 4
+cpuMax = 16
 torch.set_num_threads(cpuMax)
 # Loss function
 criterion = nn.L1Loss().to(device)
@@ -48,10 +48,12 @@ demoindex = 5
 
 ######## Dataset settings ########
 
+# Dataset name
+datasetName = 'OpenFOAM_com_airfoil_4619'
 # Dataset directory.
-dataDir = 'dataset/OpenFOAM_com_airfoil_4619/train/'
+dataDir = f'dataset/{datasetName}/train/'
 # Validation dataset directory .
-valDataDir = 'dataset/OpenFOAM_com_airfoil_4619/val/' 
+valDataDir = f'dataset/{datasetName}/val/' 
 # Dataset preprocessing mode
 preprocessingMode = ComAirfoilDataset.OFFSETREMOVAL
 # Dataset usage mode, train or test.
@@ -128,13 +130,13 @@ def train():
 
         logLine = f'Epoch {epoch+1:04d} finished | Time duration : {(time.time()-shortPeriodTime)/60:.2f} minutes\n'
         shortPeriodTime = time.time()
-        logLine += f'Traning loss : {loss:.2f} | Validation loss : {lossVal:.2f}'
+        logLine += f'Traning loss : {loss:.4f} | Validation loss : {lossVal:.4f}'
         print(logLine)
         print('-'*30)
         if not (epoch+1)%100 :
             textFileWriter.writeLog(f' *** Time duration for last 100 epochs : {(time.time()-longPeriodTime)/60:.2f} minutes *** ')
             textFileWriter.writeLog(f'Epoch {epoch+1:04d} finished ')
-            textFileWriter.writeLog(f'Traning loss : {loss:.2f} | Validation loss : {lossVal:.2f}')
+            textFileWriter.writeLog(f'Traning loss : {loss:.4f} | Validation loss : {lossVal:.4f}')
             textFileWriter.writeLog('-'*64)
             longPeriodTime = time.time()
         lossHistoryWriter.add_scalars('Loss', {'Train' : loss, 'Validation' : lossVal}, epoch+1)
@@ -147,6 +149,7 @@ def train():
     nowTime = nowTime.split('.')[0]
     textFileWriter.writeLog(f'*** Training completed at {nowTime} ***')
     textFileWriter.writeLog(f'Total training time : {totalTime:.2f} minutes.')
+    torch.save(network, f'{datasetName}_{batchSize}_batchSize_{epochs}_epochs')
 
        
 if __name__ == '__main__':
