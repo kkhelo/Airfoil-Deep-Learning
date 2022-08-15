@@ -8,8 +8,7 @@
 #
 ##################
 
-import os, sys, time, datetime
-import numpy as np
+import time, datetime
 import torch 
 import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
@@ -23,33 +22,35 @@ from network.UNet import UNet
 ####### Training settings ########
 
 # Numbers of training epochs
-epochs = 3000
+epochs = 5000
 # Batch size
-batchSize = 32
+batchSize = 128
 # Learning rate
-lr = 0.0005
+lr = 0.0001
 # Inputs channels, outputs channels
 in_channel, out_channel = 3, 4
 # Channel exponent to control network parameters amount
-expo = 6
+expo = 7
 # Network
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-network = UNet(in_channel, out_channel, expo).to(device)
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+network = UNet(in_channel, out_channel, expo)
+network = torch.nn.DataParallel(network)
+network = network.to(device)
 networkSummary, _ = summary_string(network, (in_channel, 128, 128), device=device)
 # CPU maximum number
-cpuMax = 16
+cpuMax = 12
 torch.set_num_threads(cpuMax)
 # Loss function
 criterion = nn.L1Loss().to(device)
 # Optimizer 
 optimizer = torch.optim.Adam(network.parameters(), lr=lr)
 # Data in validation dataset to demo
-demoindex = 5
+demoindex = 0
 
 ######## Dataset settings ########
 
 # Dataset name
-datasetName = 'OpenFOAM_com_airfoil_4619'
+datasetName = 'OpenFOAM_com_airfoil_8866'
 # Dataset directory.
 dataDir = f'dataset/{datasetName}/train/'
 # Validation dataset directory .
