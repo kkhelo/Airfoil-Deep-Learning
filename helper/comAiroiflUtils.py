@@ -160,6 +160,21 @@ class resultImagesGenerator():
         plt.tight_layout()
         plt.savefig(os.path.join(self.folderName, 'Diff by Local'))
 
+    def Diff(self):
+        """
+        Save difference contour filled plot (without divide).
+        """
+        plt.figure(figsize=(12,3))
+        for i in range(self.channels):
+            M = np.max(self.targets[i])
+            diff = np.abs(self.targets[i]-self.outputs[i])
+            plt.subplot(1,self.channels,i+1)
+            plt.contourf(diff, 200, cmap='Greens')
+            plt.colorbar()
+            plt.axis('off')
+
+        plt.tight_layout()
+        plt.savefig(os.path.join(self.folderName, 'Diff Without Divide'))
 
 if __name__ == '__main__':
     logger = logWriter(logDir='../log/trainingLog/')
