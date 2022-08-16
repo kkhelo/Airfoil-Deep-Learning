@@ -27,12 +27,12 @@ batchSize = 64
 # Inputs channels, outputs channels
 in_channel, out_channel = 3, 4
 # Channel exponent to control network parameters amount
-expo = 7
+expo = 6
 # Network
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 model = sys.argv[1]
-# model = './model/OpenFOAM_com_airfoil_4619_32_batchSize_3000_epochs'
-network = torch.load(model, map_location=device)
+network = UNet(in_channel, out_channel, expo)
+network.load_state_dict(torch.load(model, map_location=device), strict=True)
 networkSummary, _ = summary_string(network, (in_channel, 128, 128), device=device)
 # CPU maximum number
 cpuMax = 12
