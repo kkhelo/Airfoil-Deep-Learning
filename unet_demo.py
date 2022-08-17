@@ -27,12 +27,17 @@ batchSize = 64
 # Inputs channels, outputs channels
 in_channel, out_channel = 3, 4
 # Channel exponent to control network parameters amount
-expo = 6
+expo = 7
 # Network
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 model = sys.argv[1]
-network = UNet(in_channel, out_channel, expo)
-network.load_state_dict(torch.load(model, map_location=device), strict=True)
+# Automatically detect model type and load
+try :
+    network = UNet(in_channel, out_channel, expo)
+    network.load_state_dict(torch.load(model, map_location=device), strict=True)
+except:
+    network = torch.load(model, map_location=device)
+# Get model info
 networkSummary, _ = summary_string(network, (in_channel, 128, 128), device=device)
 # CPU maximum number
 cpuMax = 12
@@ -45,7 +50,8 @@ demoindex = 0
 ######## Dataset settings ########
 
 # Dataset name
-datasetName = 'OpenFOAM_com_airfoil_8866'
+# datasetName = 'OpenFOAM_com_airfoil_4619'
+datasetName = sys.argv[1][8:33]
 # Dataset directory.
 dataDir = f'dataset/{datasetName}/train/'
 # Test dataset directory .
@@ -93,7 +99,7 @@ with torch.no_grad():
             _, demoGroundTruth = dataset.recoverTrueValues(demoInputs, demoGroundTruth)
             _, demoPrediction = dataset.recoverTrueValues(demoInputs, demoPrediction)
 
-            imgagesGenerator.setPredAndGround(demoPrediction, demoGroundTruth, folderName=model)
+            imgagesGenerator.setPredAndGround(demoPrediction, demoGroundTruth, folderName=model.split('\\')[-1])
             imgagesGenerator.predVsGround()
             imgagesGenerator.globalDiff()
             imgagesGenerator.localDiff()
