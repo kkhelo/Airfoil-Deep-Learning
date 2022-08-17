@@ -151,7 +151,7 @@ def train():
     nowTime = nowTime.split('.')[0]
     textFileWriter.writeLog(f'*** Training completed at {nowTime} ***')
     textFileWriter.writeLog(f'Total training time : {totalTime:.2f} minutes.')
-    torch.save(network, f'{datasetName}_{batchSize}_batchSize_{epochs}_epochs_{lr}lr_{expo}expo')
+    torch.save(network.module.state_dict(), f'{datasetName}_{batchSize}_batchSize_{epochs}_epochs_{lr}lr_{expo}expo')
 
        
 if __name__ == '__main__':
