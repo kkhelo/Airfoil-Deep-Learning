@@ -26,12 +26,12 @@ epochs = 5000
 # Batch size
 batchSize = 128
 # Learning rate
-lr = 0.0001
+lr = 0.00005
 # Inputs channels, outputs channels
 in_channel, out_channel = 3, 4
 # Channel exponent to control network parameters amount
-expo = 7
-# Network
+expo = 8
+# Network　　
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 network = UNet(in_channel, out_channel, expo)
 network = torch.nn.DataParallel(network)
@@ -70,7 +70,8 @@ valLoader = DataLoader(valDataset, batchSize, shuffle=False)
 # Log writer declaration (record basic info).
 textFileWriter = logWriter(logDir='./log/trainingLog/', dataset=dataset)
 # Sumarry writer declaration (record loss per epoch).
-lossHistoryWriter = SummaryWriter(log_dir=f'log/SummaryWriterLog/{network.__class__.__name__}/bs{batchSize}_{epochs}ep/')
+networkName = 'UNet'
+lossHistoryWriter = SummaryWriter(log_dir=f'log/SummaryWriterLog/{networkName}/bs{batchSize}_{epochs}ep_{lr}lr_{expo}expo/')
 # Write train parameters setting
 trainSetting = [f'Runing epochs : {epochs}', f'Batch size : {batchSize}', f'Learning rate : {lr}']
 trainSetting += [f'Loss function : {criterion._get_name()}', f'Optimizaer : {optimizer.__class__.__name__}']
@@ -79,7 +80,7 @@ textFileWriter.writeLog('*' * 64)
 # Write network architecture and number of parameters 
 textFileWriter.writeLog(networkSummary)
 # Images output generator
-imgagesGenerator = resultImagesGenerator(channels=4, resolution=128, root=f'./log/resultImages/{batchSize}_batchSize_{epochs}_epochs/')
+imgagesGenerator = resultImagesGenerator(channels=4, resolution=128, root=f'./log/resultImages/{batchSize}_batchSize_{epochs}_epochs_{lr}lr_{expo}expo/')
 
 ######## Training script #########
 
@@ -150,7 +151,7 @@ def train():
     nowTime = nowTime.split('.')[0]
     textFileWriter.writeLog(f'*** Training completed at {nowTime} ***')
     textFileWriter.writeLog(f'Total training time : {totalTime:.2f} minutes.')
-    torch.save(network, f'{datasetName}_{batchSize}_batchSize_{epochs}_epochs')
+    torch.save(network, f'{datasetName}_{batchSize}_batchSize_{epochs}_epochs_{lr}lr_{expo}expo')
 
        
 if __name__ == '__main__':
