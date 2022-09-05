@@ -8,7 +8,7 @@
 #
 ################
 
-import os, sys, math
+import sys
 import numpy as np
 import torch
 import torch.nn as nn
@@ -16,8 +16,7 @@ from torchsummary import summary_string
 from network.UNet import UNet
 from torch.utils.data import DataLoader
 from dataset.comAirfoilDataset import ComAirfoilDataset
-from helper.comAiroiflUtils import mkdir, logWriter, resultImagesGenerator
-from glob import glob
+from helper.comAiroiflUtils import logWriter, resultImagesGenerator
 
 
 ####### network settings ########
