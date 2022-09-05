@@ -22,19 +22,19 @@ from network.UNet import UNet
 ####### Training settings ########
 
 # Numbers of training epochs
-epochs = 5000
+epochs = 1500
 # Batch size
-batchSize = 128
+batchSize = 32
 # Learning rate
 lr = 0.00005
 # Inputs channels, outputs channels
 in_channel, out_channel = 3, 4
 # Channel exponent to control network parameters amount
-expo = 8
+expo = 6
 # Network　　
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 network = UNet(in_channel, out_channel, expo)
-network = torch.nn.DataParallel(network)
+# network = torch.nn.DataParallel(network)
 network = network.to(device)
 networkSummary, _ = summary_string(network, (in_channel, 128, 128), device=device)
 # CPU maximum number
@@ -50,7 +50,7 @@ demoindex = 0
 ######## Dataset settings ########
 
 # Dataset name
-datasetName = 'OpenFOAM_com_airfoil_8866'
+datasetName = 'OpenFOAM_com_airfoil_4619'
 # Dataset directory.
 dataDir = f'dataset/{datasetName}/train/'
 # Validation dataset directory .
@@ -151,7 +151,10 @@ def train():
     nowTime = nowTime.split('.')[0]
     textFileWriter.writeLog(f'*** Training completed at {nowTime} ***')
     textFileWriter.writeLog(f'Total training time : {totalTime:.2f} minutes.')
-    torch.save(network.module.state_dict(), f'{datasetName}_{batchSize}_batchSize_{epochs}_epochs_{lr}lr_{expo}expo')
+    try:
+        torch.save(network.module.state_dict(), f'model/{datasetName}_{batchSize}_batchSize_{epochs}_epochs_{lr}lr_{expo}expo_dict')
+    except:
+        torch.save(network, f'model/{datasetName}_{batchSize}_batchSize_{epochs}_epochs_{lr}lr_{expo}expo')
 
        
 if __name__ == '__main__':
