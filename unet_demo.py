@@ -23,7 +23,7 @@ from glob import glob
 ####### network settings ########
 
 # Batch size
-batchSize = 64
+batchSize = 1
 # Inputs channels, outputs channels
 in_channel, out_channel = 3, 4
 # Channel exponent to control network parameters amount
@@ -77,6 +77,8 @@ textFileWriter.writeLog('*' * 64)
 textFileWriter.writeLog(networkSummary)
 # Images output generator
 imgagesGenerator = resultImagesGenerator(channels=4, resolution=128, root=f'./log/resultImages/DEMO/')
+# AverageLossMap
+averageLossMap = np.zeros((4,128,128))
 
 ######## Evaluation script ########
 
@@ -92,15 +94,22 @@ with torch.no_grad():
         loss_test_sum += loss.item()
 
         # Denormalize data and make images
-        if not i:
-            demoInputs = inputs.data.cpu().numpy()[demoindex].copy()
-            demoPrediction = outputs.data.cpu().numpy()[demoindex].copy()
-            demoGroundTruth = targets.data.cpu().numpy()[demoindex].copy()
-            _, demoGroundTruth = dataset.recoverTrueValues(demoInputs, demoGroundTruth)
-            _, demoPrediction = dataset.recoverTrueValues(demoInputs, demoPrediction)
+        
+        demoInputs = inputs.data.cpu().numpy()[demoindex].copy()
+        demoPrediction = outputs.data.cpu().numpy()[demoindex].copy()
+        demoGroundTruth = targets.data.cpu().numpy()[demoindex].copy()
+        _, demoGroundTruth = dataset.recoverTrueValues(demoInputs, demoGroundTruth)
+        _, demoPrediction = dataset.recoverTrueValues(demoInputs, demoPrediction)
+        averageLossMap = demoGroundTruth - demoPrediction
 
+        if not i:
             imgagesGenerator.setPredAndGround(demoPrediction, demoGroundTruth, folderName=model.split('\\')[-1])
             imgagesGenerator.predVsGround()
             imgagesGenerator.globalDiff()
             imgagesGenerator.localDiff()
             imgagesGenerator.Diff()
+
+    loss_test_sum /= len(testLoader)
+    averageLossMap /= len(testLoader)
+    imgagesGenerator
+    textFileWriter.writeLog(f'Average loss for this model is {loss_test_sum:.2f}')
