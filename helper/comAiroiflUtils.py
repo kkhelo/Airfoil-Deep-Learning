@@ -122,13 +122,13 @@ class resultImagesGenerator():
         plt.tight_layout()
         plt.savefig(os.path.join(self.folderName, 'Pred vs Ground'))
 
-    def globalDiff(self):
+    def globalDiff(self, normalizeValue = None):
         """
         Save difference contour filled plot divided by globalground truth maximum value.
         """
         plt.figure(figsize=(14,3))
         for i in range(self.channels):
-            M = np.max(self.targets[i])
+            M = normalizeValue[i] if normalizeValue else np.max(self.targets[i]) 
             diff = np.abs(self.targets[i]-self.outputs[i])
             diff /= M
             plt.subplot(1,self.channels,i+1)
