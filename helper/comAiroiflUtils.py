@@ -106,12 +106,16 @@ class resultImagesGenerator():
         """
         plt.figure(figsize=(12,6))
         for i in range(self.channels):
+            out, tar = self.outputs[i], self.targets[i]
+            M = int(max(np.max(out), np.max(tar)))
+            m = int(min(np.min(out[out != 0]), np.min(tar[tar != 0])))
+            if i in [0, 1, 3] and m < 0 : m = 0
             plt.subplot(2,self.channels,i+1)
-            plt.contourf(self.outputs[i], 100)
+            plt.contourf(self.outputs[i], levels=np.linspace(m, M, 100))
             plt.axis('off')
             plt.colorbar()
             plt.subplot(2,self.channels,i+1+self.channels)
-            plt.contourf(self.targets[i], 100)
+            plt.contourf(self.targets[i], levels=np.linspace(m, M, 100))
             plt.axis('off')
             plt.colorbar()
 
@@ -175,6 +179,10 @@ class resultImagesGenerator():
 
         plt.tight_layout()
         plt.savefig(os.path.join(self.folderName, 'Diff Without Divide'))
+
+    def saveNP(self, fileName = None):
+        if not fileName : fileName = 'flipData'
+        np.savez(fileName, pred=self.outputs, ground=self.targets)
 
 if __name__ == '__main__':
     logger = logWriter(logDir='../log/trainingLog/')
