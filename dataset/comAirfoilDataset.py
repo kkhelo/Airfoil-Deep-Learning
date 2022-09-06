@@ -7,12 +7,6 @@
 # https://github.com/thunil/Deep-Flow-Prediction/blob/master/train/dataset.py
 #
 ##################
-#
-# 22/07/26 added new feature : split data to ./train and ./val folder
-# Call from terminal directly with 'py comAirfoilDataset.py {root}}'
-#
-##################
-
 
 import os, shutil, sys
 import math, random, numpy as np
@@ -66,7 +60,7 @@ class ComAirfoilDataset(Dataset):
         print(' Normalization completed.')
         print('*'*25)
             
-    def _loadData(self):
+    def _loadData(self, fileIndexDemo = None):
         fileList = glob(os.path.join(self.dataDir, '*.npz'))
         self.length = len(fileList)
         self.inputs = np.zeros((self.length, 3, 128, 128))
@@ -76,6 +70,8 @@ class ComAirfoilDataset(Dataset):
             data = np.load(fileList[i])['a']
             self.inputs[i] = data[0:3]
             self.targets[i] = data[3:]
+        
+        if fileIndexDemo : return fileList[fileIndexDemo]
 
     def __getPTMeanValue(self):
         self.Offset = np.zeros((4,))
@@ -178,7 +174,7 @@ class ComAirfoilDataset(Dataset):
         Build test dataset 
         """
         self.dataDir = testDataDir
-        self._loadData()
+        self.fileNameToDemo = self._loadData()
 
         print('*'*25)
         print(f' Load test dataset completed. ')
