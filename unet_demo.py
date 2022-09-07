@@ -32,14 +32,17 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 model = sys.argv[1]
 # Automatically detect model type and load
 try :
+    network = torch.load(model, map_location=device)
+except:
     for expo in [6, 7, 8]:
         try:
             network = UNet(in_channel, out_channel, expo)
             network.load_state_dict(torch.load(model, map_location=device), strict=True)
+            break
         except:
             pass
-except:
-    network = torch.load(model, map_location=device)
+    
+print(network)
 # Get model info
 networkSummary, _ = summary_string(network, (in_channel, 128, 128), device=device)
 # CPU maximum number
