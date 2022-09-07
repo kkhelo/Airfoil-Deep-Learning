@@ -40,6 +40,7 @@ class ComAirfoilDataset(Dataset):
         print('*'*25)
         print(f' Load base dataset completed. ')
         print(f' Total data amount : {self.length:d}')
+        print(f' Mean U from boundary and initial condition : {self.meanUBC:.2f}')
 
         if self.preprocessingMode==self.OFFSETREMOVAL: 
             self.__getPTMeanValue()
@@ -65,12 +66,16 @@ class ComAirfoilDataset(Dataset):
         self.length = len(fileList)
         self.inputs = np.zeros((self.length, 3, 128, 128))
         self.targets = np.zeros((self.length, 4, 128, 128))
+        # Calculate for mean U(magnitude) BC
+        self.meanUBC = 0
 
         for i in range(self.length):
             data = np.load(fileList[i])['a']
             self.inputs[i] = data[0:3]
             self.targets[i] = data[3:]
+            self.meanUBC += (self.inputs[i,0,0,0]**2 + self.inputs[i,1,0,0]**2)**0.5
         
+        self.meanUBC /= self.length
         if fileIndexDemo : return fileList[fileIndexDemo]
 
     def __getPTMeanValue(self):
@@ -84,7 +89,7 @@ class ComAirfoilDataset(Dataset):
         
         for i in range(4):
             self.Offset[i] /= self.length
-
+        
         print('*'*25)
         print(f' Mean value aquired from base dataset as below : ')
         print(f' Pressure : {self.Offset[0]:.2f}')
@@ -175,10 +180,11 @@ class ComAirfoilDataset(Dataset):
         """
         self.dataDir = testDataDir
         self.fileNameToDemo = self._loadData()
-
+        
         print('*'*25)
         print(f' Load test dataset completed. ')
         print(f' Total test data amount : {self.length:d} ')
+        print(f' Mean U from boundary and initial condition : {self.meanUBC:.2f}')
 
         if self.preprocessingMode==self.OFFSETREMOVAL: 
             self._removeOffset()

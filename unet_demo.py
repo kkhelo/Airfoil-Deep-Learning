@@ -42,7 +42,6 @@ except:
         except:
             pass
     
-print(network)
 # Get model info
 networkSummary, _ = summary_string(network, (in_channel, 128, 128), device=device)
 # CPU maximum number
@@ -85,6 +84,13 @@ imgagesGenerator = resultImagesGenerator(channels=4, resolution=128, root=f'./lo
 # AverageValueMap
 averageGroundTruthMap = np.zeros((4,128,128))
 averagePredMap = np.zeros((4,128,128))
+# Value array used for test result diff percentage normalization
+POff = 0.5*1.16*dataset.meanUBC**2
+UOff = dataset.meanUBC
+TOff = 300
+testOffset = [POff, UOff, UOff, TOff]
+textFileWriter.writeLog('*' * 64)
+textFileWriter.writeLog(f'Normalization value of test data demo result : [{POff:.2f}, {UOff:.2f}, {TOff}]')
 
 ######## Evaluation script ########
 
@@ -113,22 +119,22 @@ with torch.no_grad():
             # Single data result images generation 
             imgagesGenerator.setPredAndGround(demoPrediction, demoGroundTruth, folderName=os.path.join(model.split('\\')[-1], 'Single'))
             imgagesGenerator.predVsGround()
-            imgagesGenerator.globalDiff()
+            imgagesGenerator.globalDiff(normalizeValue=testOffset)
             imgagesGenerator.localDiff()
             imgagesGenerator.Diff()
             imgagesGenerator.saveNP()
 
 # Calculation for mean loss in testing dataset
 loss_test_sum /= len(testLoader)
-textFileWriter.writeLog(f'Average loss for this model is {loss_test_sum:.2f}')
+textFileWriter.writeLog(f'Average loss for this model is {loss_test_sum:.5f}')
 
 # Get mean loss map
-averageGroundTruthMap /= len(testLoader)
-averagePredMap /= len(testLoader)
+averageGroundTruthMap /= dataset.length
+averagePredMap /= dataset.length
 
 # Average data result images generation 
 imgagesGenerator.setPredAndGround(averagePredMap, averageGroundTruthMap, folderName=os.path.join(model.split('\\')[-1], 'Average'))
 imgagesGenerator.predVsGround()
-imgagesGenerator.globalDiff()
+imgagesGenerator.globalDiff(normalizeValue=testOffset)
 imgagesGenerator.Diff()
 imgagesGenerator.saveNP()
