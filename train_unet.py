@@ -24,13 +24,13 @@ from network.UNet import UNet
 # Numbers of training epochs
 epochs = 1500
 # Batch size
-batchSize = 32
+batchSize = 64
 # Learning rate
 lr = 0.00005
 # Inputs channels, outputs channels
 in_channel, out_channel = 3, 4
 # Channel exponent to control network parameters amount
-expo = 6
+expo = 7
 # Network　　
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 network = UNet(in_channel, out_channel, expo)
