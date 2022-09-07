@@ -104,27 +104,31 @@ class resultImagesGenerator():
         Save contour filled plots of model prediction and ground truth as following order :
         pressure, x-dir velocity, y-dir velocity, temperature 
         """
-        plt.figure(figsize=(12,6))
+        plt.figure(figsize=(14,6))
         for i in range(self.channels):
+            out, tar = self.outputs[i], self.targets[i]
+            M = int(max(np.max(out), np.max(tar)))
+            m = int(min(np.min(out[out != 0]), np.min(tar[tar != 0])))
+            if i in [0, 1, 3] and m < 0 : m = 0
             plt.subplot(2,self.channels,i+1)
-            plt.contourf(self.outputs[i], 100)
+            plt.contourf(self.outputs[i], levels=np.linspace(m, M, 100))
             plt.axis('off')
             plt.colorbar()
             plt.subplot(2,self.channels,i+1+self.channels)
-            plt.contourf(self.targets[i], 100)
+            plt.contourf(self.targets[i], levels=np.linspace(m, M, 100))
             plt.axis('off')
             plt.colorbar()
 
         plt.tight_layout()
         plt.savefig(os.path.join(self.folderName, 'Pred vs Ground'))
 
-    def globalDiff(self):
+    def globalDiff(self, normalizeValue = None):
         """
         Save difference contour filled plot divided by globalground truth maximum value.
         """
-        plt.figure(figsize=(12,3))
+        plt.figure(figsize=(14,3))
         for i in range(self.channels):
-            M = np.max(self.targets[i])
+            M = normalizeValue[i] if normalizeValue else np.max(self.targets[i]) 
             diff = np.abs(self.targets[i]-self.outputs[i])
             diff /= M
             plt.subplot(1,self.channels,i+1)
@@ -139,7 +143,7 @@ class resultImagesGenerator():
         """
         Save difference contour filled plot divided by local ground truth value.
         """
-        plt.figure(figsize=(12,3))
+        plt.figure(figsize=(14,3))
         diff = np.zeros((4,128,128))
         for i in range(self.channels):
             M = np.max(self.targets[i])
@@ -164,7 +168,7 @@ class resultImagesGenerator():
         """
         Save difference contour filled plot (without divide).
         """
-        plt.figure(figsize=(12,3))
+        plt.figure(figsize=(14,3))
         for i in range(self.channels):
             M = np.max(self.targets[i])
             diff = np.abs(self.targets[i]-self.outputs[i])
@@ -175,6 +179,10 @@ class resultImagesGenerator():
 
         plt.tight_layout()
         plt.savefig(os.path.join(self.folderName, 'Diff Without Divide'))
+
+    def saveNP(self, fileName = None):
+        if not fileName : fileName = 'flipData'
+        np.savez(fileName, pred=self.outputs, ground=self.targets)
 
 if __name__ == '__main__':
     logger = logWriter(logDir='../log/trainingLog/')

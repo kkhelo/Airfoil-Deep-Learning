@@ -8,7 +8,7 @@
 #
 ################
 
-import sys
+import sys, os
 import numpy as np
 import torch
 import torch.nn as nn
@@ -22,7 +22,7 @@ from helper.comAiroiflUtils import logWriter, resultImagesGenerator
 ####### network settings ########
 
 # Batch size
-batchSize = 64
+batchSize = int(sys.argv[1].split('_batchSize')[0].split('_')[-1])
 # Inputs channels, outputs channels
 in_channel, out_channel = 3, 4
 # Channel exponent to control network parameters amount
@@ -32,8 +32,12 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 model = sys.argv[1]
 # Automatically detect model type and load
 try :
-    network = UNet(in_channel, out_channel, expo)
-    network.load_state_dict(torch.load(model, map_location=device), strict=True)
+    for expo in [6, 7, 8]:
+        try:
+            network = UNet(in_channel, out_channel, expo)
+            network.load_state_dict(torch.load(model, map_location=device), strict=True)
+        except:
+            pass
 except:
     network = torch.load(model, map_location=device)
 # Get model info
@@ -49,8 +53,7 @@ demoindex = 0
 ######## Dataset settings ########
 
 # Dataset name
-# datasetName = 'OpenFOAM_com_airfoil_4619'
-datasetName = sys.argv[1][8:33]
+datasetName = '_'.join(sys.argv[1].split('_batchSize')[0].split('.\model\\')[-1].split('_')[:-1])
 # Dataset directory.
 dataDir = f'dataset/{datasetName}/train/'
 # Test dataset directory .
@@ -76,6 +79,9 @@ textFileWriter.writeLog('*' * 64)
 textFileWriter.writeLog(networkSummary)
 # Images output generator
 imgagesGenerator = resultImagesGenerator(channels=4, resolution=128, root=f'./log/resultImages/DEMO/')
+# AverageValueMap
+averageGroundTruthMap = np.zeros((4,128,128))
+averagePredMap = np.zeros((4,128,128))
 
 ######## Evaluation script ########
 
@@ -91,15 +97,35 @@ with torch.no_grad():
         loss_test_sum += loss.item()
 
         # Denormalize data and make images
-        if not i:
-            demoInputs = inputs.data.cpu().numpy()[demoindex].copy()
-            demoPrediction = outputs.data.cpu().numpy()[demoindex].copy()
-            demoGroundTruth = targets.data.cpu().numpy()[demoindex].copy()
-            _, demoGroundTruth = dataset.recoverTrueValues(demoInputs, demoGroundTruth)
-            _, demoPrediction = dataset.recoverTrueValues(demoInputs, demoPrediction)
+        
+        demoInputs = inputs.data.cpu().numpy()[demoindex].copy()
+        demoPrediction = outputs.data.cpu().numpy()[demoindex].copy()
+        demoGroundTruth = targets.data.cpu().numpy()[demoindex].copy()
+        _, demoGroundTruth = dataset.recoverTrueValues(demoInputs, demoGroundTruth)
+        _, demoPrediction = dataset.recoverTrueValues(demoInputs, demoPrediction)
+        averageGroundTruthMap += demoGroundTruth
+        averagePredMap += demoPrediction
 
-            imgagesGenerator.setPredAndGround(demoPrediction, demoGroundTruth, folderName=model.split('\\')[-1])
+        if not i:
+            # Single data result images generation 
+            imgagesGenerator.setPredAndGround(demoPrediction, demoGroundTruth, folderName=os.path.join(model.split('\\')[-1], 'Single'))
             imgagesGenerator.predVsGround()
             imgagesGenerator.globalDiff()
             imgagesGenerator.localDiff()
             imgagesGenerator.Diff()
+            imgagesGenerator.saveNP()
+
+# Calculation for mean loss in testing dataset
+loss_test_sum /= len(testLoader)
+textFileWriter.writeLog(f'Average loss for this model is {loss_test_sum:.2f}')
+
+# Get mean loss map
+averageGroundTruthMap /= len(testLoader)
+averagePredMap /= len(testLoader)
+
+# Average data result images generation 
+imgagesGenerator.setPredAndGround(averagePredMap, averageGroundTruthMap, folderName=os.path.join(model.split('\\')[-1], 'Average'))
+imgagesGenerator.predVsGround()
+imgagesGenerator.globalDiff()
+imgagesGenerator.Diff()
+imgagesGenerator.saveNP()
