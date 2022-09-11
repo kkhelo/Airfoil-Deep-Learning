@@ -19,11 +19,11 @@ class logWriter():
         self.__logName = logDir + self.date + '/'
         mkdir([self.__logName])
         duplicate = 1
-        self.__logName += f'train-{duplicate}.txt'
+        self.__logName += f'log-{duplicate}.txt'
 
         while os.path.exists(self.__logName):
             duplicate += 1
-            self.__logName = self.__logName.split('train-')[0] + f'train-{duplicate}.txt'
+            self.__logName = self.__logName.split('log-')[0] + f'log-{duplicate}.txt'
 
         with open(self.__logName, 'w+') as of:
             print(f'Log file created : {self.__logName}')
@@ -107,15 +107,16 @@ class resultImagesGenerator():
         plt.figure(figsize=(14,6))
         for i in range(self.channels):
             out, tar = self.outputs[i], self.targets[i]
-            M = int(max(np.max(out), np.max(tar)))
-            m = int(min(np.min(out[out != 0]), np.min(tar[tar != 0])))
-            if i in [0, 1, 3] and m < 0 : m = 0
+            # M = int(max(np.max(out), np.max(tar)))
+            # m = int(min(np.min(out[out != 0]), np.min(tar[tar != 0])))
+            # if i in [0, 1, 3] and m < 0 : m = 0
+            M, m = np.max(tar), np.min(tar)
             plt.subplot(2,self.channels,i+1)
-            plt.contourf(self.outputs[i], levels=np.linspace(m, M, 100))
+            plt.contourf(out, levels=np.linspace(m, M, 100))
             plt.axis('off')
             plt.colorbar()
             plt.subplot(2,self.channels,i+1+self.channels)
-            plt.contourf(self.targets[i], levels=np.linspace(m, M, 100))
+            plt.contourf(tar, levels=np.linspace(m, M, 100))
             plt.axis('off')
             plt.colorbar()
 
@@ -182,7 +183,7 @@ class resultImagesGenerator():
 
     def saveNP(self, fileName = None):
         if not fileName : fileName = 'flipData'
-        np.savez(fileName, pred=self.outputs, ground=self.targets)
+        np.savez(os.path.join(self.folderName, fileName), pred=self.outputs, ground=self.targets)
 
 if __name__ == '__main__':
     logger = logWriter(logDir='../log/trainingLog/')
