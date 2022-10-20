@@ -22,7 +22,8 @@ from helper.comAiroiflUtils import logWriter, resultImagesGenerator
 ####### network settings ########
 
 # Batch size
-batchSize = int(sys.argv[1].split('_batchSize')[0].split('_')[-1])
+# batchSize = int(sys.argv[1].split('_batchSize')[0].split('_')[-1])
+batchSize = 1
 # Inputs channels, outputs channels
 in_channel, out_channel = 3, 4
 # Channel exponent to control network parameters amount
@@ -38,6 +39,7 @@ except:
         try:
             network = UNet(in_channel, out_channel, expo)
             network.load_state_dict(torch.load(model, map_location=device), strict=True)
+            break
         except:
             pass
     
@@ -84,12 +86,20 @@ imgagesGenerator = resultImagesGenerator(channels=4, resolution=128, root=f'./lo
 averageGroundTruthMap = np.zeros((4,128,128))
 averagePredMap = np.zeros((4,128,128))
 # Value array used for test result diff percentage normalization
+Mach = dataset.meanUBC/(1.16*287*300)**0.5
+POff = (1+0.2*Mach**2)**3.5*100000
+UOff = dataset.meanUBC
+TOff = (1+0.2*Mach**2)*300
+testOffset_total = [POff, UOff, UOff, TOff]
+
 POff = 0.5*1.16*dataset.meanUBC**2
 UOff = dataset.meanUBC
 TOff = 300
 testOffset = [POff, UOff, UOff, TOff]
+
 textFileWriter.writeLog('*' * 64)
-textFileWriter.writeLog(f'Normalization value of test data demo result : [{POff:.2f}, {UOff:.2f}, {TOff}]')
+textFileWriter.writeLog(f'Normalization value of test data demo result (total pressure) : [{testOffset_total[0]:.2f}, {UOff:.2f}, {testOffset_total[3]}]')
+textFileWriter.writeLog(f'Normalization value of test data demo result (dynamic pressure) : [{POff:.2f}, {UOff:.2f}, {TOff}]')
 
 ######## Evaluation script ########
 
@@ -110,15 +120,28 @@ with torch.no_grad():
         demoPrediction = outputs.data.cpu().numpy()[demoindex].copy()
         demoGroundTruth = targets.data.cpu().numpy()[demoindex].copy()
         _, demoGroundTruth = dataset.recoverTrueValues(demoInputs, demoGroundTruth)
-        _, demoPrediction = dataset.recoverTrueValues(demoInputs, demoPrediction)
+        demoInputs, demoPrediction = dataset.recoverTrueValues(demoInputs, demoPrediction)
         averageGroundTruthMap += demoGroundTruth
         averagePredMap += demoPrediction
+        
 
         if not i:
             # Single data result images generation 
-            imgagesGenerator.setPredAndGround(demoPrediction, demoGroundTruth, folderName=os.path.join(model.split('\\')[-1], 'Single'))
+            imgagesGenerator.setPredAndGround(demoPrediction, demoGroundTruth, folderName=os.path.join(model.split('\\')[-1], 'Single_self_total'))
             imgagesGenerator.predVsGround()
-            imgagesGenerator.globalDiff(normalizeValue=testOffset)
+            selfU = (demoInputs[0,0,0]**2+demoInputs[1,0,0])**0.5
+            selfMach = selfU/(1.16*287*300)**0.5
+            selfOffset_total = [(1+0.2*selfMach**2)**3.5*100000, selfU, selfU, (1+0.2*selfMach**2)*300]
+            imgagesGenerator.globalDiff(normalizeValue=selfOffset_total)
+            imgagesGenerator.localDiff()
+            imgagesGenerator.Diff()
+            imgagesGenerator.saveNP()
+
+            imgagesGenerator.setPredAndGround(demoPrediction, demoGroundTruth, folderName=os.path.join(model.split('\\')[-1], 'Single_self'))
+            imgagesGenerator.predVsGround()
+            selfU = (demoInputs[0,0,0]**2+demoInputs[1,0,0])**0.5
+            selfOffset = [0.5*1.16*selfU**2, selfU, selfU, 300]
+            imgagesGenerator.globalDiff(normalizeValue=selfOffset)
             imgagesGenerator.localDiff()
             imgagesGenerator.Diff()
             imgagesGenerator.saveNP()
@@ -126,14 +149,25 @@ with torch.no_grad():
 # Calculation for mean loss in testing dataset
 loss_test_sum /= len(testLoader)
 textFileWriter.writeLog(f'Average loss for this model is {loss_test_sum:.5f}')
+print(selfOffset)
+print(selfOffset_total)
 
-# Get mean loss map
-averageGroundTruthMap /= dataset.length
-averagePredMap /= dataset.length
+# # Get mean loss map
+# averageGroundTruthMap /= dataset.length
+# averagePredMap /= dataset.length
 
-# Average data result images generation 
-imgagesGenerator.setPredAndGround(averagePredMap, averageGroundTruthMap, folderName=os.path.join(model.split('\\')[-1], 'Average'))
-imgagesGenerator.predVsGround()
-imgagesGenerator.globalDiff(normalizeValue=testOffset)
-imgagesGenerator.Diff()
-imgagesGenerator.saveNP()
+# # Average data result images generation 
+# imgagesGenerator.setPredAndGround(averagePredMap, averageGroundTruthMap, folderName=os.path.join(model.split('\\')[-1], 'Average_total'))
+# imgagesGenerator.predVsGround()
+# imgagesGenerator.globalDiff(normalizeValue=testOffset_total)
+# imgagesGenerator.Diff()
+# imgagesGenerator.saveNP()
+
+# imgagesGenerator.setPredAndGround(averagePredMap, averageGroundTruthMap, folderName=os.path.join(model.split('\\')[-1], 'Average'))
+# imgagesGenerator.predVsGround()
+# imgagesGenerator.globalDiff(normalizeValue=testOffset)
+# imgagesGenerator.Diff()
+# imgagesGenerator.saveNP()
+
+# print(testOffset_total)
+# print(testOffset)
