@@ -18,7 +18,7 @@ def find_shortest(i_:int,j_:int, edge_domain_min, edge_domain_max, upper, lower)
     return answer
 
 
-def make_sdf(img_path):
+def make_sdf(img_path, target_path : str = None):
 
     img = cv.imread(img_path, cv.IMREAD_GRAYSCALE)
     img = cv.resize(img, (224, 224))
@@ -28,7 +28,7 @@ def make_sdf(img_path):
 
     for j in range(224):
         for i in range(224):
-            if img[i,j] == 0:
+            if img[i,j] != 255:
                 upper[j] = i
                 for k in range(i,224):
                     if img[k,j] == 255:
@@ -38,7 +38,6 @@ def make_sdf(img_path):
 
     edge_domain_min = np.where(upper != 0)[0][0]
     edge_domain_max = np.where(upper != 0)[0][-1]
-    
 
     # find distance between bound and each pixel
 
@@ -56,12 +55,13 @@ def make_sdf(img_path):
             else:
                 sdf[i,j] = math.sqrt(find_shortest(i,j,edge_domain_min,edge_domain_max,upper,lower))
 
-    img_path = img_path.replace('NACAUIUC_10C_fill1_1123', 'NACAUIUC_10C_sdf1_1123')
-    img_path = img_path.replace('.png', '.npy')
-    np.save(img_path, sdf)
-    
-    
+    if target_path is None:
+        temp = img_path.replace('NACAUIUC_10C_fill1_1123', 'NACAUIUC_10C_sdf1_1123')
+        target_path = temp.replace('.png', '.npy')
 
+    np.save(target_path, sdf)
+    return sdf
+    
 def main(root, cpu_num : int = os.cpu_count()//2):
 
     class_folder = os.path.join(root, '*')
